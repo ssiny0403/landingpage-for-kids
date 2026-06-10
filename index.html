@@ -320,6 +320,7 @@
     #reviews { background: var(--bg); }
 
     .review-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; }
+    #tab-elem .review-grid { grid-template-columns: repeat(2, 1fr); }
     .review-card {
       background: var(--surface); border-radius: var(--r);
       padding: 28px 24px; box-shadow: var(--shadow);
@@ -333,6 +334,59 @@
       display: flex; align-items: center; justify-content: center;
     }
     .review-empty p { font-size: 13px; font-weight: 300; color: var(--muted); text-align: center; line-height: 1.7; }
+    /* 탭 */
+    .review-tabs {
+      display: flex; gap: 8px; margin-bottom: 32px;
+    }
+    .rtab {
+      background: none; border: 1.5px solid var(--border);
+      border-radius: 100px; padding: 9px 22px;
+      font-family: 'Paperozi', sans-serif; font-size: 14px; font-weight: 500;
+      color: var(--muted); cursor: pointer;
+      transition: background .18s, color .18s, border-color .18s;
+    }
+    .rtab.active {
+      background: var(--purple); color: #fff; border-color: var(--purple);
+    }
+    .rtab:not(.active):hover {
+      border-color: var(--purple); color: var(--purple);
+    }
+
+    .mid-text-card { grid-column: 1 / -1; }
+
+    /* 성적 증명 카드 */
+    .score-grid { display: grid; grid-template-columns: repeat(2,1fr); gap: 16px; }
+    .score-card {
+      background: linear-gradient(135deg, var(--purple-dark), var(--purple));
+      border-radius: var(--r); padding: 28px 24px; color: #fff;
+    }
+    .score-label {
+      font-size: 11px; font-weight: 700; letter-spacing: 2px;
+      text-transform: uppercase; color: var(--lavender);
+      margin-bottom: 20px;
+    }
+    .score-row {
+      display: flex; align-items: center; gap: 16px; margin-bottom: 20px;
+    }
+    .score-before, .score-after {
+      display: flex; flex-direction: column; gap: 4px;
+    }
+    .score-num {
+      font-size: 28px; font-weight: 900; letter-spacing: -1px; line-height: 1;
+    }
+    .score-num.accent { color: #FFD86B; }
+    .score-desc { font-size: 11px; font-weight: 300; color: rgba(255,255,255,.6); line-height: 1.5; }
+    .score-arrow {
+      font-size: 24px; font-weight: 900; color: #FFD86B; flex-shrink: 0;
+    }
+    .score-note {
+      font-size: 12px; font-weight: 300; color: rgba(255,255,255,.65);
+      line-height: 1.65; border-top: 1px solid rgba(255,255,255,.15);
+      padding-top: 16px;
+    }
+
+    @media (max-width: 700px) { .score-grid { grid-template-columns: 1fr; } }
+
     .review-notice { margin-top: 18px; font-size: 11px; color: #ccc; font-weight: 300; text-align: center; }
 
     /* ═══════════════════════════════
@@ -419,10 +473,10 @@
       Pearson Certified Master Teacher
     </div>
 
-    <h1>피어슨이 검증한 원장이<br /><span class="accent">직접</span> 가르칩니다</h1>
+    <h1>세상과 <span class="accent">소통하는 영어</span>를<br />훈련하는 스튜디오</h1>
 
-    <p class="hero-slogan">씬나는 영어 · 세상과 소통하는 영어</p>
-    <p class="hero-sub">거학초·교대부설초 인근 &nbsp;·&nbsp; 소수 정예 영어 스튜디오</p>
+    <p class="hero-slogan">씬나는 영어 · thin(가벼운) 영어</p>
+    <p class="hero-sub">거학초 · 부산교대부설초 · 이사벨중 인근&nbsp;&nbsp;|&nbsp;&nbsp;소수 정예 영어 스튜디오</p>
 
     <a href="tel:01080704722" class="cta-btn">
       <svg width="18" height="18" fill="none" viewBox="0 0 24 24"><path d="M6.62 10.79a15.05 15.05 0 006.59 6.59l2.2-2.2a1 1 0 011.01-.24c1.12.37 2.33.57 3.58.57a1 1 0 011 1V20a1 1 0 01-1 1C9.61 21 3 14.39 3 6a1 1 0 011-1h3.5a1 1 0 011 1c0 1.25.2 2.46.57 3.58a1 1 0 01-.25 1.01l-2.2 2.2z" fill="currentColor"/></svg>
@@ -520,7 +574,7 @@
       </ul>
     </div>
   </div>
-  <p class="level-note fi">★ 중학 개별 코칭반 별도 운영</p>
+  <p class="level-note fi">★ 중학 개별 코칭반 별도 운영 &nbsp;·&nbsp; 이사벨중 내신 전문</p>
 </section>
 
 <!-- ═══ CURRICULUM ═══ -->
@@ -626,7 +680,7 @@
         </tr>
         <tr>
           <td><span class="class-name">아이비반</span><span class="class-badge">중등</span></td>
-          <td>중등 개별 코칭 · 내신 서술형 집중 관리</td>
+          <td>중등 개별 코칭 · 내신 서술형 집중 관리 · <strong>이사벨중 내신 전문</strong></td>
         </tr>
       </tbody>
     </table>
@@ -693,25 +747,95 @@
 <section id="reviews" class="sec">
   <div class="fi">
     <p class="eyebrow">수강 후기</p>
-    <h2 class="sec-title">학부모님의 이야기</h2>
+    <h2 class="sec-title">학부모님 · 학생들의 이야기</h2>
   </div>
-  <div class="review-grid fi">
-    <div class="review-card">
-      <div class="review-q">"</div>
-      <div class="review-stars">★★★★★</div>
-      <p class="review-text">공부하기 싫어하던 아이가 스스로 책을 펼칩니다.</p>
-      <p class="review-who">거학초 학부모</p>
-    </div>
-    <div class="review-card">
-      <div class="review-q">"</div>
-      <div class="review-stars">★★★★★</div>
-      <p class="review-text">선생님이 아이 상태를 늘 파악하고 계셔서 안심됩니다.</p>
-      <p class="review-who">중등 자녀 학부모</p>
-    </div>
-    <div class="review-card review-empty">
-      <p>실제 학부모님 후기로<br />업데이트될 예정입니다</p>
+
+  <!-- 탭 -->
+  <div class="review-tabs fi">
+    <button class="rtab active" data-tab="elem">🌱 초등 후기</button>
+    <button class="rtab" data-tab="mid">📚 중등 후기</button>
+  </div>
+
+  <!-- 초등 후기 -->
+  <div class="review-panel" id="tab-elem">
+    <div class="review-grid">
+      <div class="review-card">
+        <div class="review-q">"</div>
+        <div class="review-stars">★★★★★</div>
+        <p class="review-text">아이가 수업이 너무 재미있다고 하더라구요~ 숙제도 말 안해도 스스로 해내고 있어서 너무 신기할따름이고, 매일 수업 가고 싶다니 다 선생님 덕분입니다!</p>
+        <p class="review-who">거학초 3학년 D 학부모님</p>
+      </div>
+      <div class="review-card">
+        <div class="review-q">"</div>
+        <div class="review-stars">★★★★★</div>
+        <p class="review-text">씬잉글리쉬 다닌 이후로 영어를 더 긍정적으로 받아들이고 있는 것 같아서 너무 안심이 됩니다. 앞으로는 선생님의 방향성을 믿겠습니다.</p>
+        <p class="review-who">거학초 3학년 C 학부모님</p>
+      </div>
+      <div class="review-card">
+        <div class="review-q">"</div>
+        <div class="review-stars">★★★★★</div>
+        <p class="review-text">문법을 구구단부터 리듬이랑 다양한 암기법으로 알려 주셔서 문법 수업이 신나요!</p>
+        <p class="review-who">거학초 4학년 L 학생 ✏️</p>
+      </div>
+      <div class="review-card">
+        <div class="review-q">"</div>
+        <div class="review-stars">★★★★★</div>
+        <p class="review-text">처음 왔을때부터 친절하게 알려주시고, 친구들보다 잘 못해도 상처 받지 않게 차근히 대해 주셔서 지금은 친구들과 실력이 똑같아지고 자신감이 더 생겼어요.</p>
+        <p class="review-who">부설초 5학년 L 학생 ✏️</p>
+      </div>
     </div>
   </div>
+
+  <!-- 중등 후기 -->
+  <div class="review-panel" id="tab-mid" style="display:none">
+    <!-- 텍스트 후기 -->
+    <div class="review-card mid-text-card" style="margin-bottom:20px;">
+      <div style="display:flex;align-items:center;gap:10px;margin-bottom:14px;">
+        <span style="background:var(--purple);color:#fff;font-size:11px;font-weight:600;padding:3px 10px;border-radius:4px;letter-spacing:1px;">네이버 리뷰</span>
+        <span class="review-stars" style="margin:0;">★★★★★</span>
+      </div>
+      <div class="review-q" style="margin-bottom:8px;">"</div>
+      <p class="review-text">올해 고1이 된 자녀가 영어회화를 원어민처럼 해보고 싶다는 얘기를 계속 해왔던터라 문법위주보다는 좀 더 세밀한 티칭이 있음 좋겠다는 생각에 소개를 받았습니다.<br /><br />
+      레벨테스트를 통한 정확한 진단으로 처음부터 신뢰를 갖게 되었고, 원어민발음 듣기 루틴화를 통한 새도잉훈련을 하면서 자신의 발음을 스스로 체크하고 실제 원어민이 사용하는 회화체를 배우면서 재미를 더한 자신감까지 채워지는 아이의 모습이 참 감사했답니다!<br /><br />
+      정기적인 학력테스트를 통한 문법과 독해력의 정확한 진단까지 해주시는 것을 보면서 진짜 씬원장님의 전문성과 학생을 향한 열정이 느껴졌습니다. 아이와 소통하며 라포를 형성해주시고, 학부모와 정기적으로 소통하며, 학업의 결과물로 증명하는 씬잉글리쉬! 적극 추천합니다!^^</p>
+      <p class="review-who">고1 K 학생 학부모님</p>
+    </div>
+
+    <!-- 성적 증명 카드 2개 -->
+    <div class="score-grid">
+      <div class="score-card">
+        <div class="score-label">중 1 · 독해력</div>
+        <div class="score-row">
+          <div class="score-before">
+            <span class="score-num">56%</span>
+            <span class="score-desc">1회차<br />2025.06.23</span>
+          </div>
+          <div class="score-arrow">→</div>
+          <div class="score-after">
+            <span class="score-num accent">상위 9%</span>
+            <span class="score-desc">2회차<br />2026.02.19</span>
+          </div>
+        </div>
+        <p class="score-note">DC코믹스를 좋아하는 이*헌 씬키즈<br />꾸준한 원서읽기와 씬잉글리쉬의 시스템을 믿고 만들어 낸 결과</p>
+      </div>
+      <div class="score-card">
+        <div class="score-label">중 3 · 3개월만에</div>
+        <div class="score-row">
+          <div class="score-before">
+            <span class="score-num">73%</span>
+            <span class="score-desc">1회차<br />2025.11.03</span>
+          </div>
+          <div class="score-arrow">→</div>
+          <div class="score-after">
+            <span class="score-num accent">상위 7%</span>
+            <span class="score-desc">2회차<br />2026.02.11</span>
+          </div>
+        </div>
+        <p class="score-note">자기주도 학습법을 몰라 막막했던 시작<br />감*경 씬키즈의 성실함과 씬잉글리쉬의 시스템을 믿고 만들어 낸 결과</p>
+      </div>
+    </div>
+  </div>
+
   <p class="review-notice">※ 실제 수강생·학부모님의 후기만 사용합니다.</p>
 </section>
 
@@ -727,7 +851,7 @@
     </a>
     <div class="contact-detail">
       <span><a href="tel:01080704722">010-8070-4722</a></span>
-      <span>부산시 연제구 중앙대로 1235번길 10-8</span>
+      <span>부산시 연제구 중앙대로 1235번길 10-8 &nbsp;·&nbsp; 거학초·부산교대부설초·이사벨중 인근</span>
     </div>
   </div>
 </section>
@@ -739,6 +863,18 @@
 </footer>
 
 <script>
+  // 후기 탭
+  document.querySelectorAll('.rtab').forEach(btn => {
+    btn.addEventListener('click', () => {
+      document.querySelectorAll('.rtab').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      const target = btn.dataset.tab;
+      document.querySelectorAll('.review-panel').forEach(p => {
+        p.style.display = p.id === 'tab-' + target ? 'block' : 'none';
+      });
+    });
+  });
+
   const io = new IntersectionObserver(entries => {
     entries.forEach(e => { if (e.isIntersecting) { e.target.classList.add('on'); io.unobserve(e.target); } });
   }, { threshold: 0.08 });
