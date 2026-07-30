@@ -1,0 +1,961 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#17161A">
+<title>단어 퀘스트 · 씬잉글리쉬</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700;12..96,800&family=Noto+Sans+KR:wght@400;500;700;900&display=swap" rel="stylesheet">
+<style>
+:root{
+  --paper:#FBF7EF;
+  --paper-2:#FFFFFF;
+  --ink:#17161A;
+  --ink-60:#55525C;
+  --line:#17161A;
+  --brand:#92308D;
+  --brand-deep:#6B1F68;
+  --c-plum:#92308D;
+  --c-blue:#2F4BB8;
+  --c-teal:#1F6F63;
+  --c-clay:#C6382C;
+  --c-amber:#E8A21F;
+  --ok:#167A5B;
+  --no:#C6382C;
+  --shadow:4px 4px 0 var(--ink);
+  --shadow-sm:3px 3px 0 var(--ink);
+  --r:14px;
+}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{margin:0;padding:0}
+body{
+  background:var(--paper);
+  color:var(--ink);
+  font-family:"Noto Sans KR","Bricolage Grotesque",system-ui,sans-serif;
+  font-size:17px;
+  line-height:1.6;
+  padding-bottom:env(safe-area-inset-bottom);
+}
+body::before{
+  content:"";position:fixed;inset:0;pointer-events:none;z-index:0;opacity:.5;
+  background-image:radial-gradient(var(--ink) .6px,transparent .6px);
+  background-size:22px 22px;
+  -webkit-mask-image:linear-gradient(180deg,rgba(0,0,0,.16),transparent 60%);
+          mask-image:linear-gradient(180deg,rgba(0,0,0,.16),transparent 60%);
+}
+.en{font-family:"Bricolage Grotesque","Noto Sans KR",sans-serif;font-weight:700;letter-spacing:-.01em}
+button{font:inherit;color:inherit;cursor:pointer}
+:focus-visible{outline:3px solid var(--c-blue);outline-offset:2px}
+
+/* ---------- top bar ---------- */
+header{
+  position:sticky;top:0;z-index:40;
+  background:var(--ink);color:var(--paper);
+  border-bottom:3px solid var(--ink);
+}
+.bar{max-width:760px;margin:0 auto;padding:10px 14px;display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+.brandmark{font-family:"Bricolage Grotesque",sans-serif;font-weight:800;font-size:16px;letter-spacing:-.02em;line-height:1.1;margin-right:auto}
+.brandmark small{display:block;font-family:"Noto Sans KR",sans-serif;font-weight:500;font-size:11px;opacity:.7;letter-spacing:0}
+.tabs{display:flex;gap:6px;background:rgba(255,255,255,.12);padding:4px;border-radius:11px}
+.tabs button{
+  border:0;background:transparent;color:var(--paper);
+  font-weight:700;font-size:15px;padding:8px 15px;border-radius:8px;
+}
+.tabs button[aria-selected="true"]{background:var(--paper);color:var(--ink)}
+.purse{display:flex;gap:7px;width:100%;padding-top:2px}
+.pill{
+  display:inline-flex;align-items:center;gap:6px;
+  background:rgba(255,255,255,.1);border:1.5px solid rgba(255,255,255,.28);
+  border-radius:999px;padding:4px 11px 4px 8px;font-size:14px;font-weight:700;
+}
+.pill b{font-family:"Bricolage Grotesque",sans-serif;font-size:16px}
+.pill .dot{width:15px;height:15px;border-radius:50%;display:block;border:1.5px solid var(--ink)}
+
+main{max-width:760px;margin:0 auto;padding:18px 14px 64px;position:relative;z-index:1}
+.hide{display:none !important}
+
+/* ---------- panels ---------- */
+.panel{
+  background:var(--paper-2);border:2.5px solid var(--line);border-radius:var(--r);
+  box-shadow:var(--shadow);padding:20px 18px;margin-bottom:16px;
+}
+h2{font-size:23px;margin:0 0 4px;letter-spacing:-.02em}
+.sub{color:var(--ink-60);font-size:15px;margin:0 0 16px}
+
+/* ---------- setup ---------- */
+.fieldset{margin-bottom:18px}
+.fieldset > p{font-weight:700;font-size:15px;margin:0 0 9px}
+.chips{display:flex;flex-wrap:wrap;gap:8px}
+.chip{
+  border:2px solid var(--line);background:var(--paper);border-radius:999px;
+  padding:9px 16px;font-weight:700;font-size:15px;transition:transform .1s,background .1s;
+}
+.chip[aria-pressed="true"]{background:var(--ink);color:var(--paper)}
+.chip:active{transform:translateY(1px)}
+.mode-list{display:grid;gap:9px}
+.mode{
+  display:flex;align-items:flex-start;gap:12px;text-align:left;width:100%;
+  border:2px solid var(--line);background:var(--paper);border-radius:12px;padding:13px 14px;
+}
+.mode[aria-pressed="true"]{background:var(--ink);color:var(--paper);box-shadow:var(--shadow-sm)}
+.mode .key{
+  flex:0 0 auto;width:34px;height:34px;border-radius:9px;border:2px solid var(--ink);
+  display:grid;place-items:center;font-family:"Bricolage Grotesque",sans-serif;font-weight:800;font-size:17px;
+  background:var(--m,var(--c-amber));color:var(--ink);
+}
+.mode strong{display:block;font-size:16.5px}
+.mode span{font-size:13.5px;opacity:.72;line-height:1.45}
+.btn{
+  display:block;width:100%;border:2.5px solid var(--ink);border-radius:12px;
+  background:var(--brand);color:#fff;font-weight:800;font-size:19px;padding:15px;
+  box-shadow:var(--shadow);transition:transform .08s,box-shadow .08s;
+}
+.btn:active{transform:translate(3px,3px);box-shadow:0 0 0 var(--ink)}
+.btn.ghost{background:var(--paper);color:var(--ink)}
+.btn.sm{font-size:16px;padding:11px;box-shadow:var(--shadow-sm)}
+
+/* ---------- quiz ---------- */
+.qhead{display:flex;align-items:center;gap:10px;margin-bottom:14px;flex-wrap:wrap}
+.tag{
+  font-size:13px;font-weight:800;padding:5px 11px;border-radius:999px;
+  border:2px solid var(--ink);background:var(--qc,var(--c-amber));color:var(--ink);
+}
+.meter{margin-left:auto;font-size:14px;font-weight:700;color:var(--ink-60)}
+.meter b{font-family:"Bricolage Grotesque",sans-serif;color:var(--ink);font-size:16px}
+.stage{
+  border:2.5px solid var(--line);border-radius:var(--r);background:var(--paper-2);
+  box-shadow:var(--shadow);padding:26px 18px;margin-bottom:14px;
+  border-top:9px solid var(--qc,var(--c-amber));
+}
+.ask{font-size:14px;font-weight:700;color:var(--ink-60);margin:0 0 12px}
+.word{
+  font-family:"Bricolage Grotesque",sans-serif;font-weight:800;
+  font-size:clamp(34px,10vw,52px);line-height:1.12;letter-spacing:-.03em;
+  margin:0;overflow-wrap:anywhere;
+}
+.pos{font-size:15px;font-weight:700;color:var(--ink-60);margin:6px 0 0}
+.mean{font-size:clamp(26px,7.5vw,38px);font-weight:900;line-height:1.3;margin:0;overflow-wrap:anywhere}
+.sentence{
+  font-family:"Bricolage Grotesque",sans-serif;font-weight:500;
+  font-size:clamp(21px,5.6vw,29px);line-height:1.5;margin:0;overflow-wrap:anywhere;
+}
+.sentence .gap{
+  display:inline-block;min-width:82px;border-bottom:4px solid var(--qc,var(--c-amber));
+  vertical-align:-3px;margin:0 3px;
+}
+.sentence .gap.filled{border-bottom-color:var(--ink);font-weight:800}
+.hintko{margin:14px 0 0;font-size:15px;color:var(--ink-60);font-weight:500}
+
+.options{display:grid;gap:10px}
+.opt{
+  display:flex;align-items:center;gap:12px;text-align:left;width:100%;
+  border:2.5px solid var(--ink);border-radius:12px;background:var(--paper-2);
+  padding:15px 15px;font-weight:700;font-size:19px;line-height:1.35;
+  box-shadow:var(--shadow-sm);transition:transform .08s,box-shadow .08s;
+  overflow-wrap:anywhere;
+}
+.opt:active{transform:translate(2px,2px);box-shadow:0 0 0 var(--ink)}
+.opt .n{
+  flex:0 0 auto;width:30px;height:30px;border-radius:8px;border:2px solid var(--ink);
+  display:grid;place-items:center;font-family:"Bricolage Grotesque",sans-serif;font-size:15px;font-weight:800;
+  background:var(--paper);
+}
+.opt.eng{font-family:"Bricolage Grotesque",sans-serif;font-weight:700}
+.opt.is-ok{background:var(--ok);color:#fff}
+.opt.is-ok .n{background:#fff;color:var(--ok)}
+.opt.is-no{background:var(--no);color:#fff}
+.opt.is-no .n{background:#fff;color:var(--no)}
+.opt.dim{opacity:.42}
+.opt[disabled]{cursor:default}
+
+.result{
+  margin-top:14px;border:2.5px solid var(--ink);border-radius:12px;padding:15px;
+  background:var(--paper-2);box-shadow:var(--shadow-sm);
+}
+.result .verdict{display:flex;align-items:center;gap:9px;font-size:19px;font-weight:900;margin-bottom:8px}
+.result .verdict .mark{
+  width:28px;height:28px;border-radius:50%;display:grid;place-items:center;
+  color:#fff;font-size:16px;font-weight:800;
+}
+.result .full{font-family:"Bricolage Grotesque",sans-serif;font-size:17px;line-height:1.5;margin:0 0 6px}
+.result .full u{text-decoration:none;background:#FFE9A8;padding:0 4px;border-bottom:3px solid var(--c-amber);font-weight:800}
+.result .k{font-size:16px;font-weight:700;margin:0}
+.result .note{font-size:13.5px;color:var(--ink-60);margin:9px 0 0}
+.result .coin{font-size:15px;font-weight:800;color:var(--c-amber)}
+
+.streak{display:inline-flex;gap:3px;align-items:center;margin-left:2px}
+.streak i{width:9px;height:9px;border-radius:50%;background:var(--ink);opacity:.18;display:block}
+.streak i.on{opacity:1;background:var(--c-amber)}
+
+/* ---------- collection ---------- */
+.collection{margin-top:4px}
+.gems{display:grid;grid-template-columns:repeat(5,1fr);gap:8px}
+.gem{
+  border:2px solid var(--ink);border-radius:11px;background:var(--paper);
+  padding:7px 3px 6px;text-align:center;
+}
+.gem svg{width:100%;height:auto;max-width:46px;display:block;margin:0 auto}
+.gem figcaption{font-size:11.5px;font-weight:700;margin-top:3px;line-height:1.2}
+.gem.locked{opacity:.3}
+.gem.locked figcaption{color:var(--ink-60)}
+
+/* ---------- wordbook ---------- */
+.wb-actions{display:flex;gap:9px;flex-wrap:wrap;margin-bottom:16px}
+.wb-actions .btn{width:auto;flex:1 1 150px}
+.wlist{list-style:none;margin:0;padding:0;display:grid;gap:10px}
+.witem{
+  border:2px solid var(--ink);border-radius:12px;background:var(--paper-2);
+  padding:13px 14px;box-shadow:var(--shadow-sm);
+}
+.wtop{display:flex;align-items:baseline;gap:9px;flex-wrap:wrap}
+.wtop .w{font-family:"Bricolage Grotesque",sans-serif;font-weight:800;font-size:24px;letter-spacing:-.02em}
+.wtop .tries{
+  font-size:12px;font-weight:800;border:2px solid var(--ink);border-radius:999px;
+  padding:1px 9px;background:#FFE9A8;
+}
+.wtop .del{margin-left:auto;border:2px solid var(--ink);background:var(--paper);border-radius:9px;padding:4px 10px;font-size:13px;font-weight:700}
+.wmean{font-size:18px;font-weight:700;margin:5px 0 0}
+.wex{font-family:"Bricolage Grotesque",sans-serif;font-size:15.5px;color:var(--ink-60);margin:7px 0 0;line-height:1.45}
+.empty{text-align:center;padding:34px 12px}
+.empty p{font-size:17px;font-weight:700;margin:0 0 6px}
+.empty span{color:var(--ink-60);font-size:15px}
+
+textarea{
+  width:100%;min-height:90px;border:2px solid var(--ink);border-radius:10px;padding:10px;
+  font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:12px;background:var(--paper);color:var(--ink);
+}
+
+/* ---------- modal ---------- */
+.scrim{
+  position:fixed;inset:0;z-index:60;background:rgba(23,22,26,.72);
+  display:grid;place-items:center;padding:20px;
+}
+.modal{
+  width:100%;max-width:360px;background:var(--paper-2);border:3px solid var(--ink);
+  border-radius:18px;box-shadow:8px 8px 0 var(--ink);padding:24px 20px;text-align:center;
+  animation:pop .34s cubic-bezier(.16,1,.3,1);
+}
+@keyframes pop{from{transform:scale(.94) translateY(12px);opacity:0}to{transform:none;opacity:1}}
+.modal .kicker{font-size:14px;font-weight:800;color:var(--ink-60);margin:0}
+.modal h3{font-size:27px;margin:6px 0 2px;letter-spacing:-.02em}
+.modal .gemwrap{width:130px;margin:12px auto 8px}
+.modal .gemwrap svg{width:100%;height:auto}
+.modal p.msg{font-size:15px;color:var(--ink-60);margin:4px 0 18px}
+.coupon{
+  border:3px dashed var(--ink);border-radius:14px;padding:18px 12px;margin:14px 0 18px;background:#FFF6DC;
+}
+.coupon .big{font-size:26px;font-weight:900;letter-spacing:-.02em}
+.coupon .small{font-size:14px;color:var(--ink-60);margin-top:4px}
+
+footer{max-width:760px;margin:0 auto;padding:6px 16px 30px;color:var(--ink-60);font-size:13px;text-align:center;position:relative;z-index:1}
+
+@media (min-width:560px){
+  body{font-size:18px}
+  .options{grid-template-columns:1fr 1fr}
+  .wb-actions .btn{flex:0 1 auto;padding-left:20px;padding-right:20px}
+}
+@media (prefers-reduced-motion:reduce){
+  *,*::before,*::after{animation-duration:.001ms !important;animation-iteration-count:1 !important;transition-duration:.001ms !important}
+  .opt:active,.btn:active{transform:none}
+}
+</style>
+</head>
+<body>
+
+<header>
+  <div class="bar">
+    <div class="brandmark">단어 퀘스트<small>씬잉글리쉬 스튜디오</small></div>
+    <div class="tabs" role="tablist">
+      <button role="tab" id="tab-game" aria-selected="true" aria-controls="view-game">게임</button>
+      <button role="tab" id="tab-book" aria-selected="false" aria-controls="view-book">내 단어장</button>
+    </div>
+    <div class="purse">
+      <span class="pill"><span class="dot" style="background:#E8A21F"></span>코인 <b id="p-coin">0</b></span>
+      <span class="pill"><span class="dot" style="background:#5AC8E8"></span>보석 <b id="p-gem">0</b>/10</span>
+      <span class="pill"><span class="dot" style="background:#D98CD4"></span>소원쿠폰 <b id="p-cpn">0</b></span>
+    </div>
+  </div>
+</header>
+
+<main>
+  <!-- ============ GAME ============ -->
+  <section id="view-game" role="tabpanel" aria-labelledby="tab-game">
+
+    <!-- setup -->
+    <div class="panel" id="setup">
+      <h2>오늘도 한 판 해볼까?</h2>
+      <p class="sub">문제를 맞히면 코인 1개. 코인 10개마다 보석 카드를 한 장 뽑아요.</p>
+
+      <div class="fieldset">
+        <p>어떤 방식으로 풀까?</p>
+        <div class="mode-list" id="modes">
+          <button class="mode" data-mode="ko" style="--m:#F2C14E" aria-pressed="true">
+            <span class="key">뜻</span>
+            <span><strong>단어 뜻 맞히기</strong><span>영어 단어를 보고 한국어 뜻 고르기 + 예문 빈칸에 들어갈 영어 단어 고르기</span></span>
+          </button>
+          <button class="mode" data-mode="en" style="--m:#9FC7F5" aria-pressed="false">
+            <span class="key">EN</span>
+            <span><strong>영어 단어 맞히기</strong><span>한국어 뜻을 보고 영어 단어 고르기 + 예문 빈칸 자리의 뜻 고르기</span></span>
+          </button>
+          <button class="mode" data-mode="mix" style="--m:#C9AEE8" aria-pressed="false">
+            <span class="key">MIX</span>
+            <span><strong>두 가지 섞어서</strong><span>네 가지 문제 유형이 번갈아 나와요. 실전용!</span></span>
+          </button>
+        </div>
+      </div>
+
+      <div class="fieldset">
+        <p>단원 고르기</p>
+        <div class="chips" id="units">
+          <button class="chip" data-unit="0" aria-pressed="true">전체</button>
+          <button class="chip" data-unit="1" aria-pressed="false">1과</button>
+          <button class="chip" data-unit="2" aria-pressed="false">2과</button>
+          <button class="chip" data-unit="3" aria-pressed="false">3과</button>
+          <button class="chip" data-unit="4" aria-pressed="false">4과</button>
+        </div>
+      </div>
+
+      <button class="btn" id="start">시작하기</button>
+      <p class="sub" style="margin:12px 0 0;text-align:center" id="poolinfo"></p>
+
+      <div class="collection">
+        <hr style="border:0;border-top:2px dashed var(--ink);opacity:.25;margin:20px 0 16px">
+        <p style="font-weight:700;margin:0 0 10px">보석 카드 <span id="gemcount" style="color:var(--ink-60);font-weight:500"></span></p>
+        <div class="gems" id="gems"></div>
+        <button class="btn sm ghost hide" id="exchange" style="margin-top:12px">소원 쿠폰으로 바꾸기</button>
+      </div>
+    </div>
+
+    <!-- quiz -->
+    <div id="quiz" class="hide">
+      <div class="qhead">
+        <span class="tag" id="q-tag">뜻 고르기</span>
+        <span class="streak" id="q-streak" aria-label="연속 정답"></span>
+        <span class="meter">이번 판 <b id="q-score">0</b> / <b id="q-total">0</b></span>
+      </div>
+      <div class="stage" id="q-stage">
+        <p class="ask" id="q-ask"></p>
+        <div id="q-body"></div>
+      </div>
+      <div class="options" id="q-options"></div>
+      <div id="q-result"></div>
+      <button class="btn ghost sm" id="quit" style="margin-top:18px">그만하고 나가기</button>
+    </div>
+  </section>
+
+  <!-- ============ WORDBOOK ============ -->
+  <section id="view-book" role="tabpanel" aria-labelledby="tab-book" class="hide">
+    <div class="panel">
+      <h2>내 단어장</h2>
+      <p class="sub" id="wb-sub">틀린 단어가 자동으로 모여요. 복습에서 두 번 맞히면 졸업!</p>
+      <div class="wb-actions">
+        <button class="btn sm" id="review">단어장으로 복습하기</button>
+        <button class="btn sm ghost" id="backup">백업 / 복원</button>
+      </div>
+      <ul class="wlist" id="wlist"></ul>
+      <div class="empty hide" id="wb-empty">
+        <p>아직 틀린 단어가 없어요</p>
+        <span>게임에서 틀린 단어는 여기에 자동으로 저장됩니다.</span>
+      </div>
+    </div>
+  </section>
+</main>
+
+<footer>기록은 이 브라우저에 저장됩니다 · 씬잉글리쉬 스튜디오</footer>
+
+<div id="modalRoot"></div>
+
+<script>
+/* =========================================================
+   1. 단어 데이터
+   ex 의 ___ 자리가 빈칸입니다. ex 가 없으면 뜻 문제로만 출제됩니다.
+   ========================================================= */
+const WORDS = [
+/* ---- 1과 ---- */
+{u:1,en:"must",pos:"aux.",ko:"~해야 한다",ex:"You ___ wash your hands before you eat."},
+{u:1,en:"may",pos:"aux.",ko:"~해도 되다",ex:"___ I use your phone for a minute?"},
+{u:1,en:"on the phone",pos:"",ko:"전화로",ex:"My sister talks with her friend ___ every night."},
+{u:1,en:"terribly",pos:"adv.",ko:"몹시, 대단히",ex:"I am ___ sorry about the broken window."},
+{u:1,en:"turn ~ off",pos:"",ko:"~을 끄다, 잠그다",ex:"Please ___ the TV before you go to bed."},
+{u:1,en:"text",pos:"v.",ko:"문자를 보내다",ex:"I will ___ you the address later."},
+{u:1,en:"touch",pos:"v.",ko:"만지다",ex:"Do not ___ the paintings in the museum."},
+{u:1,en:"golden",pos:"a.",ko:"황금빛의",ex:"The evening sky turned ___ and pink."},
+{u:1,en:"anything",pos:"pron.",ko:"아무것도",ex:"I did not eat ___ for lunch today."},
+{u:1,en:"run",pos:"v.",ko:"달리다",note:"run-ran-run",ex:"I ___ to school every morning."},
+{u:1,en:"sign",pos:"n.",ko:"표지판",ex:"The ___ at the door says 'No Photos'."},
+{u:1,en:"inside",pos:"prep./adv.",ko:"~안에; 안으로",ex:"It is raining, so let us play ___."},
+{u:1,en:"take",pos:"v.",ko:"가지고 가다",note:"take-took-taken",ex:"Do not forget to ___ your umbrella with you."},
+{u:1,en:"bring",pos:"v.",ko:"가져오다",note:"bring-brought-brought",ex:"Please ___ your textbook to class tomorrow."},
+{u:1,en:"only",pos:"adv.",ko:"오직",ex:"I have ___ one ticket for the concert."},
+{u:1,en:"bottled",pos:"a.",ko:"병에 담은",ex:"She bought two ___ waters at the store."},
+{u:1,en:"sunflower",pos:"n.",ko:"해바라기",ex:"Van Gogh painted a famous picture of a ___."},
+{u:1,en:"favorite",pos:"a.",ko:"가장 좋아하는",ex:"Pizza is my ___ food in the world."},
+{u:1,en:"painting",pos:"n.",ko:"그림",ex:"That ___ on the wall is over 100 years old."},
+{u:1,en:"take a picture",pos:"",ko:"사진을 찍다",ex:"Can you ___ of me in front of the tower?"},
+{u:1,en:"flash",pos:"n.",ko:"(카메라) 플래시",ex:"Please turn off the ___ when you take photos here."},
+{u:1,en:"a little",pos:"",ko:"조금",ex:"I can speak ___ Chinese."},
+{u:1,en:"use",pos:"v.",ko:"사용하다",ex:"May I ___ your pencil for a second?"},
+{u:1,en:"damage",pos:"v.",ko:"훼손하다",ex:"Strong light can ___ old paintings."},
+{u:1,en:"move on to ~",pos:"",ko:"~로 옮기다",ex:"Let us ___ the next room now."},
+
+/* ---- 2과 ---- */
+{u:2,en:"someone",pos:"pron.",ko:"누군가",ex:"___ left a bag on the bus."},
+{u:2,en:"throw",pos:"v.",ko:"던지다",note:"throw-threw-thrown",ex:"Do not ___ your trash on the street."},
+{u:2,en:"eyewitness",pos:"n.",ko:"목격자",ex:"The police talked to an ___ of the crime."},
+{u:2,en:"following",pos:"n.",ko:"다음, 아래",ex:"Read the ___ and answer the questions."},
+{u:2,en:"find",pos:"v.",ko:"발견하다, 찾다",note:"find-found-found",ex:"Did you ___ your lost wallet?"},
+{u:2,en:"criminal",pos:"n.",ko:"범인, 범죄자",ex:"The police caught the ___ near the bakery."},
+{u:2,en:"visitor",pos:"n.",ko:"방문객",ex:"A ___ came to the museum this morning."},
+{u:2,en:"turn around",pos:"",ko:"뒤돌아보다",ex:"I heard a noise, so I had to ___."},
+{u:2,en:"see",pos:"v.",ko:"보다",note:"see-saw-seen",ex:"Did you ___ the man in the gray hat?"},
+{u:2,en:"old",pos:"a.",ko:"나이가 많은",ex:"The ___ man walked slowly with a stick."},
+{u:2,en:"stand",pos:"v.",ko:"서 있다",note:"stand-stood-stood",ex:"Two guards ___ at the gate all day."},
+{u:2,en:"in front of ~",pos:"",ko:"~ 앞에",ex:"She was standing ___ the bakery."},
+{u:2,en:"wheelchair",pos:"n.",ko:"휠체어",ex:"The old woman moved in a ___."},
+{u:2,en:"about",pos:"adv./prep.",ko:"대략, ~쯤; ~에 대해",ex:"He is ___ 180cm tall."},
+{u:2,en:"tall",pos:"a.",ko:"키가 큰",note:"tall-taller-tallest",ex:"My brother is very ___ for his age."},
+{u:2,en:"than",pos:"prep.",ko:"~보다",ex:"He is taller ___ me."},
+{u:2,en:"janitor",pos:"n.",ko:"청소부, 관리인",ex:"The ___ cleaned the hallway after school."},
+{u:2,en:"gray",pos:"a./n.",ko:"회색의; 회색",ex:"The suspect wore a ___ jacket."},
+{u:2,en:"run away",pos:"",ko:"도망치다",ex:"The thief tried to ___ from the police."},
+{u:2,en:"fall off ~",pos:"",ko:"~에서 떨어지다",ex:"His hat began to ___ his head."},
+{u:2,en:"wig",pos:"n.",ko:"가발",ex:"The actor wore a long brown ___."},
+{u:2,en:"run after ~",pos:"",ko:"~을 뒤쫓다",ex:"The guard began to ___ the thief."},
+{u:2,en:"catch",pos:"v.",ko:"(누군가를) 붙잡다",note:"catch-caught-caught",ex:"The police will ___ him soon."},
+{u:2,en:"fast",pos:"a.",ko:"빠른",note:"fast-faster-fastest",ex:"He is a ___ runner, so nobody can catch him."},
+{u:2,en:"in fact",pos:"",ko:"사실은",ex:"He looks young, but ___ he is fifty."},
+{u:2,en:"young",pos:"a.",ko:"젊은, 어린",ex:"The suspect was a ___ man in his twenties."},
+{u:2,en:"long",pos:"a.",ko:"(길이가) 긴",ex:"She has ___ black hair."},
+{u:2,en:"brown",pos:"a./n.",ko:"갈색의; 갈색",ex:"He was wearing ___ shoes."},
+{u:2,en:"guard",pos:"n.",ko:"경비원",ex:"A ___ watches the door at night."},
+{u:2,en:"crime",pos:"n.",ko:"범죄",ex:"Stealing is a serious ___."},
+{u:2,en:"scene",pos:"n.",ko:"(사건이 일어난) 현장",ex:"The police arrived at the ___ very quickly."},
+{u:2,en:"piece",pos:"n.",ko:"조각",ex:"I found a ___ of glass on the floor."},
+{u:2,en:"all over",pos:"",ko:"곳곳에",ex:"There was water ___ the floor."},
+{u:2,en:"near",pos:"prep.",ko:"~에서 가까이, ~ 근처에",ex:"The bank is ___ my house."},
+{u:2,en:"next to ~",pos:"",ko:"~ 옆에",ex:"The bakery is ___ the bank."},
+{u:2,en:"bakery",pos:"n.",ko:"빵집",ex:"I bought fresh bread at the ___."},
+{u:2,en:"owner",pos:"n.",ko:"주인",ex:"The ___ of the shop saw everything."},
+{u:2,en:"come in",pos:"",ko:"들어오다",ex:"Please ___ and take a seat."},
+{u:2,en:"speak",pos:"v.",ko:"말하다",note:"speak-spoke-spoken",ex:"Can you ___ more slowly, please?"},
+{u:2,en:"Spanish",pos:"n.",ko:"스페인어",ex:"He spoke ___, not English."},
+{u:2,en:"understand",pos:"v.",ko:"이해하다",note:"understand-understood-understood",ex:"I did not ___ what he said."},
+{u:2,en:"a lot of",pos:"",ko:"많은",ex:"There were ___ people in the store."},
+{u:2,en:"different",pos:"a.",ko:"다양한",ex:"The shop sells many ___ hats."},
+{u:2,en:"want",pos:"v.",ko:"원하다",ex:"What do you ___ for your birthday?"},
+{u:2,en:"small",pos:"a.",ko:"(크기 등이) 작은",note:"small-smaller-smallest",ex:"The room was too ___ for ten people."},
+{u:2,en:"sell",pos:"v.",ko:"팔다",note:"sell-sold-sold",ex:"They ___ fresh bread every morning."},
+{u:2,en:"remember",pos:"v.",ko:"기억하다",ex:"Do you ___ his face clearly?"},
+{u:2,en:"clearly",pos:"adv.",ko:"명확하게",ex:"Please speak ___ so everyone can hear you."},
+{u:2,en:"information",pos:"n.",ko:"정보",ex:"The police need more ___ about the suspect."},
+{u:2,en:"suspect",pos:"n.",ko:"용의자",ex:"The ___ was about thirty years old."},
+{u:2,en:"height",pos:"n.",ko:"키",ex:"What is the ___ of the tall man?"},
+{u:2,en:"language",pos:"n.",ko:"언어",ex:"English is a world ___."},
+{u:2,en:"green",pos:"n.",ko:"초록색",ex:"My favorite color is ___."},
+{u:2,en:"short",pos:"a.",ko:"(길이·거리가) 짧은",ex:"She has ___ curly hair."},
+
+/* ---- 3과 ---- */
+{u:3,en:"air conditioner",pos:"n.",ko:"에어컨",ex:"Please turn off the ___ before you leave."},
+{u:3,en:"right away",pos:"",ko:"즉시, 곧바로",ex:"I will fix it ___."},
+{u:3,en:"single-use",pos:"a.",ko:"일회용의",ex:"We should not use ___ cups."},
+{u:3,en:"forget",pos:"v.",ko:"~을 잊다",note:"forget-forgot-forgotten",ex:"Do not ___ to bring your water bottle."},
+{u:3,en:"forgetful",pos:"a.",ko:"잘 잊는",ex:"My dad is very ___ about his keys."},
+{u:3,en:"carry",pos:"v.",ko:"운반하다",ex:"I ___ my own bag every day."},
+{u:3,en:"else",pos:"adv.",ko:"다른, 그 밖의",ex:"What ___ can we do for the earth?"},
+{u:3,en:"favor",pos:"n.",ko:"부탁, 청, 호의",ex:"Can I ask you a ___?"},
+{u:3,en:"plog",pos:"v.",ko:"플로깅하다",ex:"We ___ in the park every Saturday."},
+{u:3,en:"member",pos:"n.",ko:"회원, 구성원",ex:"She is a ___ of our club."},
+{u:3,en:"mean",pos:"v.",ko:"의미하다",note:"mean-meant-meant",ex:"What does this word ___?"},
+{u:3,en:"pick ~ up",pos:"",ko:"~을 줍다; ~을 찾아오다",ex:"We ___ trash while we run."},
+{u:3,en:"at the same time",pos:"",ko:"동시에",ex:"You can run and clean the street ___."},
+{u:3,en:"interested",pos:"a.",ko:"관심이 있는",ex:"I am ___ in learning Spanish."},
+{u:3,en:"by the way",pos:"",ko:"그런데",ex:"___, did you finish your homework?"},
+
+/* ---- 4과 ---- */
+{u:4,en:"zero",pos:"a.",ko:"0의, 제로의",ex:"Our goal is ___ waste at school."},
+{u:4,en:"waste",pos:"n.",ko:"쓰레기",ex:"We produce too much ___ every day."},
+{u:4,en:"earth",pos:"n.",ko:"지구",ex:"We must save the ___."},
+{u:4,en:"challenge",pos:"n.",ko:"도전",ex:"I joined a two-week ___ last month."},
+{u:4,en:"produce",pos:"v.",ko:"생산하다",ex:"Factories ___ lots of plastic every day."},
+{u:4,en:"lots of",pos:"",ko:"많은",ex:"There is ___ food left after the party."},
+{u:4,en:"sick",pos:"a.",ko:"아픈, 병든",ex:"Plastic makes sea animals ___."},
+{u:4,en:"save",pos:"v.",ko:"구하다",ex:"Small actions can ___ the earth."},
+{u:4,en:"join",pos:"v.",ko:"참여하다",ex:"Will you ___ our club this year?"},
+{u:4,en:"share",pos:"v.",ko:"공유하다",ex:"I want to ___ my story with you."},
+{u:4,en:"story",pos:"n.",ko:"이야기",ex:"She told us an interesting ___."},
+{u:4,en:"reduce",pos:"v.",ko:"줄이다",ex:"We should ___ plastic waste."},
+{u:4,en:"birthday",pos:"n.",ko:"생일",ex:"My ___ party was last Sunday."},
+{u:4,en:"eat out",pos:"",ko:"외식하다",note:"eat-ate-eaten",ex:"We ___ every Friday evening."},
+{u:4,en:"leftover",pos:"n.",ko:"남은 음식",ex:"I put the ___ in the fridge."},
+{u:4,en:"out of ~",pos:"",ko:"~로, ~를 이용해서",ex:"She made a bag ___ old jeans."},
+{u:4,en:"make A out of B",pos:"",ko:"B로 A를 만들다"},
+{u:4,en:"on the Internet",pos:"",ko:"인터넷으로",ex:"I found the recipe ___."},
+{u:4,en:"FYI",pos:"",ko:"참고로",note:"For Your Information",ex:"___, the shop closes at six."},
+{u:4,en:"reuse",pos:"v.",ko:"재사용하다",ex:"We can ___ these glass bottles."},
+{u:4,en:"tear",pos:"v.",ko:"찢다",note:"tear-tore-torn",ex:"Be careful not to ___ the paper."},
+{u:4,en:"think",pos:"v.",ko:"생각하다",note:"think-thought-thought",ex:"I ___ this idea is great."},
+{u:4,en:"learn",pos:"v.",ko:"배우다",ex:"I want to ___ how to sew."},
+{u:4,en:"important",pos:"a.",ko:"중요한",ex:"It is ___ to reduce waste."},
+{u:4,en:"living",pos:"n.",ko:"생활",ex:"Zero-waste ___ is not easy at first."},
+{u:4,en:"decide",pos:"v.",ko:"결심하다, 결정하다",ex:"It is time to ___ what we will do."},
+{u:4,en:"fix",pos:"v.",ko:"고치다, 수선하다",ex:"My uncle can ___ any broken chair."},
+{u:4,en:"be good at ~",pos:"",ko:"~을 잘하다",ex:"I want to ___ speaking English."},
+{u:4,en:"sew",pos:"v.",ko:"바느질하다",note:"sew-sewed-sewn",ex:"My grandmother taught me how to ___."},
+{u:4,en:"look",pos:"v.",ko:"~처럼 보이다",ex:"You ___ tired today."},
+{u:4,en:"perfect",pos:"a.",ko:"완벽한",ex:"The bag is not ___, but I love it."},
+{u:4,en:"guess",pos:"v.",ko:"추측하다",ex:"Can you ___ what is in the box?"},
+{u:4,en:"right",pos:"a.",ko:"괜찮은, 좋은",ex:"This is the ___ time to start."},
+{u:4,en:"plastic",pos:"n.",ko:"플라스틱",ex:"Too much ___ goes into the sea."},
+{u:4,en:"often",pos:"adv.",ko:"종종",ex:"I ___ order food from that shop."},
+{u:4,en:"delivery",pos:"n.",ko:"배달",ex:"Food ___ makes a lot of trash."},
+{u:4,en:"instead",pos:"adv.",ko:"대신에",ex:"I did not buy a new one. I fixed it ___."},
+{u:4,en:"restaurant",pos:"n.",ko:"식당, 레스토랑",ex:"We ate at a Korean ___ last night."},
+{u:4,en:"reusable",pos:"a.",ko:"재사용할 수 있는",ex:"Bring a ___ cup to the cafe."},
+{u:4,en:"container",pos:"n.",ko:"용기, 그릇",ex:"I take my own ___ to the restaurant."},
+{u:4,en:"hear",pos:"v.",ko:"~라는 것을 듣다",note:"hear-heard-heard",ex:"I am glad to ___ that you won the contest."},
+{u:4,en:"never",pos:"adv.",ko:"결코 ~않다",ex:"I ___ waste food."},
+{u:4,en:"go away",pos:"",ko:"없어지다",note:"go-went-gone",ex:"Plastic does not ___ easily."},
+{u:4,en:"completely",pos:"adv.",ko:"완전히",ex:"The bottle is ___ empty now."},
+{u:4,en:"feel",pos:"v.",ko:"~한 기분이 들다",note:"feel-felt-felt",ex:"I ___ good after cleaning the park."},
+{u:4,en:"recycle",pos:"v.",ko:"재활용하다",ex:"We ___ paper and cans at school."},
+{u:4,en:"take A to B",pos:"",ko:"A를 B로 데려가다",note:"take-took-taken"},
+{u:4,en:"glass",pos:"n.",ko:"유리",ex:"This bottle is made of ___."},
+{u:4,en:"bottle",pos:"n.",ko:"병",ex:"Put the empty ___ into the machine."},
+{u:4,en:"machine",pos:"n.",ko:"기계",ex:"The ___ gives you points for empty cans."},
+{u:4,en:"put A into B",pos:"",ko:"A를 B에 넣다",note:"put-put-put"},
+{u:4,en:"one by one",pos:"",ko:"하나씩, 차례로",ex:"Put the cans in ___."},
+{u:4,en:"in return",pos:"",ko:"대가로, 답례로",ex:"You get points ___."},
+{u:4,en:"like",pos:"prep.",ko:"~처럼, ~와 같이",ex:"He runs ___ the wind."},
+{u:4,en:"cool",pos:"a.",ko:"멋있는",ex:"That is a really ___ idea!"}
+];
+
+/* 빈칸에 실제로 들어가는 형태: "turn ~ off" -> "turn off" */
+WORDS.forEach(w=>{ w.blank = w.en.replace(/~/g," ").replace(/\s+/g," ").trim(); });
+
+/* =========================================================
+   2. 보석 카드
+   ========================================================= */
+const CARDS = [
+  {id:"amethyst", ko:"자수정",   c:"#9B5DE5", d:"#6B33B0"},
+  {id:"sapphire", ko:"사파이어", c:"#3A6FE0", d:"#22459A"},
+  {id:"emerald",  ko:"에메랄드", c:"#2FA97C", d:"#1B6E50"},
+  {id:"ruby",     ko:"루비",     c:"#E0483C", d:"#96261C"},
+  {id:"topaz",    ko:"토파즈",   c:"#F0A828", d:"#B0710E"},
+  {id:"opal",     ko:"오팔",     c:"#66D6D0", d:"#2E8F8A"},
+  {id:"garnet",   ko:"가넷",     c:"#B3305E", d:"#78173C"},
+  {id:"aqua",     ko:"아쿠아마린",c:"#4FBEE8", d:"#237E9F"},
+  {id:"diamond",  ko:"다이아몬드",c:"#D9DDE6", d:"#8B93A3"},
+  {id:"moon",     ko:"문스톤",   c:"#EBD9F2", d:"#A98CC2"}
+];
+function gemSVG(c,d){
+  return `<svg viewBox="0 0 100 100" aria-hidden="true">
+    <g stroke="#17161A" stroke-width="4" stroke-linejoin="round">
+      <path d="M30 18 H70 L88 44 L50 90 L12 44 Z" fill="${c}"/>
+      <path d="M30 18 L38 44 H12 Z" fill="${d}"/>
+      <path d="M70 18 L62 44 H88 Z" fill="${d}"/>
+      <path d="M38 44 H62 L50 90 Z" fill="${d}" opacity=".55"/>
+      <path d="M12 44 H88" fill="none"/>
+      <path d="M38 44 L30 18 M62 44 L70 18" fill="none"/>
+    </g>
+  </svg>`;
+}
+
+/* =========================================================
+   3. 저장 (localStorage)
+   ========================================================= */
+const KEY="ssiny-word-quest-v1";
+const DEF={coins:0,earned:0,cards:[],coupons:0,book:{},solved:0,correct:0};
+let S = load();
+function load(){
+  try{
+    const raw = localStorage.getItem(KEY);
+    if(!raw) return {...DEF};
+    return Object.assign({},DEF,JSON.parse(raw));
+  }catch(e){ return {...DEF}; }
+}
+function save(){
+  try{ localStorage.setItem(KEY, JSON.stringify(S)); }
+  catch(e){ /* 저장 공간이 없어도 게임은 계속 */ }
+}
+
+/* =========================================================
+   4. 유틸
+   ========================================================= */
+const $  = s=>document.querySelector(s);
+const $$ = s=>[...document.querySelectorAll(s)];
+const esc = s=>String(s).replace(/[&<>"]/g,m=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[m]));
+const rand = n=>Math.floor(Math.random()*n);
+const pick = a=>a[rand(a.length)];
+function shuffle(a){ a=a.slice(); for(let i=a.length-1;i>0;i--){const j=rand(i+1);[a[i],a[j]]=[a[j],a[i]];} return a; }
+const byEn = Object.fromEntries(WORDS.map(w=>[w.en,w]));
+
+/* =========================================================
+   5. 상단 지갑 / 컬렉션
+   ========================================================= */
+function paintPurse(){
+  $("#p-coin").textContent = S.coins;
+  $("#p-gem").textContent  = S.cards.length;
+  $("#p-cpn").textContent  = S.coupons;
+}
+function paintGems(){
+  $("#gems").innerHTML = CARDS.map(c=>{
+    const has = S.cards.includes(c.id);
+    return `<figure class="gem${has?"":" locked"}">
+      ${gemSVG(has?c.c:"#D8D4CC", has?c.d:"#B4AFA6")}
+      <figcaption>${has?esc(c.ko):"？"}</figcaption>
+    </figure>`;
+  }).join("");
+  $("#gemcount").textContent = `${S.cards.length} / 10 모음`;
+  $("#exchange").classList.toggle("hide", S.cards.length<10);
+}
+
+/* =========================================================
+   6. 모달
+   ========================================================= */
+function modal(html, onClose){
+  const root=$("#modalRoot");
+  root.innerHTML = `<div class="scrim"><div class="modal" role="dialog" aria-modal="true">${html}</div></div>`;
+  const close=()=>{ root.innerHTML=""; if(onClose) onClose(); };
+  root.querySelectorAll("[data-close]").forEach(b=>b.addEventListener("click",close));
+  const first = root.querySelector("button"); if(first) first.focus();
+  return close;
+}
+
+function drawCard(){
+  const left = CARDS.filter(c=>!S.cards.includes(c.id));
+  if(!left.length) return;
+  S.coins -= 10;
+  const got = pick(left);
+  S.cards.push(got.id);
+  save(); paintPurse(); paintGems();
+  const done = S.cards.length===10;
+  modal(`
+    <p class="kicker">코인 10개를 모았어요</p>
+    <h3>${esc(got.ko)} 획득!</h3>
+    <div class="gemwrap">${gemSVG(got.c,got.d)}</div>
+    <p class="msg">${done?"열 장을 모두 모았어요! 소원 쿠폰으로 바꿀 수 있어요.":`앞으로 ${10-S.cards.length}장 남았어요.`}</p>
+    <button class="btn" data-close>좋았어!</button>
+  `);
+}
+
+function exchangeCoupon(){
+  modal(`
+    <p class="kicker">보석 10장 전부 모음</p>
+    <h3>소원 쿠폰으로 바꿀까요?</h3>
+    <p class="msg">모은 보석 카드는 사라지고, 소원 쿠폰 1개를 받아요. 카드는 처음부터 다시 모을 수 있어요.</p>
+    <button class="btn" id="doEx">바꿀래요</button>
+    <button class="btn ghost sm" data-close style="margin-top:9px">조금 더 모을래요</button>
+  `);
+  $("#doEx").addEventListener("click",()=>{
+    S.cards=[]; S.coupons++; save(); paintPurse(); paintGems();
+    modal(`
+      <p class="kicker">교환 완료</p>
+      <h3>소원 쿠폰 ${S.coupons}장</h3>
+      <div class="coupon"><div class="big">소원 쿠폰</div><div class="small">선생님께 보여주고 소원 하나를 말해요</div></div>
+      <button class="btn" data-close>확인</button>
+    `);
+  });
+}
+
+/* =========================================================
+   7. 탭
+   ========================================================= */
+function showTab(which){
+  const g = which==="game";
+  $("#tab-game").setAttribute("aria-selected", g);
+  $("#tab-book").setAttribute("aria-selected", !g);
+  $("#view-game").classList.toggle("hide", !g);
+  $("#view-book").classList.toggle("hide", g);
+  if(!g) paintBook();
+  window.scrollTo({top:0});
+}
+$("#tab-game").addEventListener("click",()=>showTab("game"));
+$("#tab-book").addEventListener("click",()=>showTab("book"));
+
+/* =========================================================
+   8. 설정 화면
+   ========================================================= */
+let mode="ko", unit=0;
+$$("#modes .mode").forEach(b=>b.addEventListener("click",()=>{
+  mode=b.dataset.mode;
+  $$("#modes .mode").forEach(x=>x.setAttribute("aria-pressed", x===b));
+  updatePool();
+}));
+$$("#units .chip").forEach(b=>b.addEventListener("click",()=>{
+  unit=+b.dataset.unit;
+  $$("#units .chip").forEach(x=>x.setAttribute("aria-pressed", x===b));
+  updatePool();
+}));
+function currentPool(){ return unit? WORDS.filter(w=>w.u===unit) : WORDS; }
+function updatePool(){
+  $("#poolinfo").textContent = `출제 단어 ${currentPool().length}개`;
+}
+updatePool();
+
+$("#start").addEventListener("click",()=>startGame(currentPool(),false));
+$("#exchange").addEventListener("click",exchangeCoupon);
+
+/* =========================================================
+   9. 게임
+   ========================================================= */
+const TYPES = {
+  km: {tag:"뜻 고르기",       ask:"이 단어의 뜻은?",                 color:"#F2C14E"},
+  eb: {tag:"빈칸 채우기",     ask:"빈칸에 알맞은 영어 단어는?",       color:"#9FC7F5"},
+  ew: {tag:"영어 고르기",     ask:"이 뜻을 가진 영어 단어는?",        color:"#A8DCC4"},
+  kb: {tag:"빈칸 뜻 고르기",  ask:"빈칸에 들어갈 말의 뜻은?",         color:"#E2B4DF"}
+};
+
+let pool=[], reviewMode=false, q=null, locked=false;
+let session={n:0, ok:0, streak:0};
+let recent=[];
+
+function startGame(list, review){
+  if(list.length<4){
+    modal(`<h3>단어가 모자라요</h3><p class="msg">문제를 만들려면 단어가 4개 이상 필요해요.</p><button class="btn" data-close>확인</button>`);
+    return;
+  }
+  pool=list; reviewMode=review; recent=[];
+  session={n:0, ok:0, streak:0};
+  $("#setup").classList.add("hide");
+  $("#quiz").classList.remove("hide");
+  showTab("game");
+  nextQuestion();
+}
+
+function nextQuestion(){
+  locked=false;
+  $("#q-result").innerHTML="";
+  // 최근에 나온 단어는 잠시 피하기
+  let w, guard=0;
+  do{ w=pick(pool); guard++; }while(recent.includes(w.en) && guard<25);
+  recent.push(w.en); if(recent.length>Math.min(8,pool.length-1)) recent.shift();
+
+  // 유형 결정
+  let m = mode==="mix" ? (Math.random()<.5?"ko":"en") : mode;
+  const blank = !!w.ex && Math.random()<.5;
+  let type;
+  if(m==="ko") type = blank ? "eb" : "km";
+  else         type = blank ? "kb" : "ew";
+
+  // 보기 만들기
+  const others = shuffle(WORDS.filter(x=>x.en!==w.en));
+  const same = others.filter(x=>x.pos && x.pos===w.pos);
+  const picks=[];
+  for(const src of [same, others]){
+    for(const c of src){
+      if(picks.length>=3) break;
+      if(picks.some(p=>p.en===c.en)) continue;
+      if(type==="km"||type==="kb"){ if(picks.some(p=>p.ko===c.ko) || c.ko===w.ko) continue; }
+      else { if(c.blank===w.blank) continue; }
+      picks.push(c);
+    }
+  }
+  const answerIsEnglish = (type==="eb"||type==="ew");
+  const opts = shuffle([w,...picks]).map(x=>({
+    en:x.en,
+    label: answerIsEnglish ? x.en : x.ko,
+    ok: x.en===w.en
+  }));
+
+  q={w,type,opts};
+  paintQuestion();
+}
+
+function paintQuestion(){
+  const {w,type,opts}=q, T=TYPES[type];
+  $("#q-stage").style.setProperty("--qc", T.color);
+  $("#q-tag").style.setProperty("--qc", T.color);
+  $("#q-tag").textContent = (reviewMode?"복습 · ":"") + T.tag;
+  $("#q-ask").textContent = T.ask;
+  $("#q-score").textContent = session.ok;
+  $("#q-total").textContent = session.n;
+  $("#q-streak").innerHTML = [0,1,2].map(i=>`<i class="${i<Math.min(session.streak,3)?"on":""}"></i>`).join("");
+
+  let body="";
+  if(type==="km"){
+    body = `<p class="word">${esc(w.en)}</p>${w.pos?`<p class="pos">${esc(w.pos)}</p>`:""}`;
+  }else if(type==="ew"){
+    body = `<p class="mean">${esc(w.ko)}</p>${w.pos?`<p class="pos">${esc(w.pos)}</p>`:""}`;
+  }else{
+    body = `<p class="sentence">${sentenceHTML(w,false)}</p>`;
+    if(type==="eb") body += `<p class="hintko">힌트 · ${esc(w.ko)}</p>`;
+  }
+  $("#q-body").innerHTML = body;
+
+  $("#q-options").innerHTML = opts.map((o,i)=>
+    `<button class="opt${(type==="eb"||type==="ew")?" eng":""}" data-i="${i}">
+       <span class="n">${i+1}</span><span>${esc(o.label)}</span>
+     </button>`).join("");
+  $$("#q-options .opt").forEach(b=>b.addEventListener("click",()=>answer(+b.dataset.i)));
+}
+
+function sentenceHTML(w, filled){
+  const parts = w.ex.split("___");
+  const gap = filled
+    ? `<span class="gap filled">${esc(w.blank)}</span>`
+    : `<span class="gap">&nbsp;</span>`;
+  return esc(parts[0]) + gap + esc(parts[1]||"");
+}
+
+function answer(i){
+  if(locked) return; locked=true;
+  const {w,opts,type}=q;
+  const chosen=opts[i];
+  session.n++;
+  const btns=$$("#q-options .opt");
+  btns.forEach((b,j)=>{
+    b.disabled=true;
+    if(opts[j].ok) b.classList.add("is-ok");
+    else if(j===i) b.classList.add("is-no");
+    else b.classList.add("dim");
+  });
+
+  let earnedCoin=false, drew=false;
+  if(chosen.ok){
+    session.ok++; session.streak++;
+    S.coins++; S.earned++; S.correct++; S.solved++;
+    earnedCoin=true;
+    if(S.book[w.en]){
+      S.book[w.en].left--;
+      if(S.book[w.en].left<=0) delete S.book[w.en];
+    }
+  }else{
+    session.streak=0; S.solved++;
+    const e=S.book[w.en] || (S.book[w.en]={miss:0,left:2,at:Date.now()});
+    e.miss++; e.left=2; e.at=Date.now();
+  }
+  save(); paintPurse();
+  $("#q-score").textContent=session.ok;
+  $("#q-total").textContent=session.n;
+  $("#q-streak").innerHTML=[0,1,2].map(k=>`<i class="${k<Math.min(session.streak,3)?"on":""}"></i>`).join("");
+
+  // 예문 문제였다면 빈칸을 채워서 보여주기
+  if(type==="eb"||type==="kb"){
+    $("#q-body").querySelector(".sentence").innerHTML = sentenceHTML(w,true);
+  }
+
+  const mastered = chosen.ok && !S.book[w.en];
+  $("#q-result").innerHTML = `
+    <div class="result">
+      <div class="verdict">
+        <span class="mark" style="background:${chosen.ok?"var(--ok)":"var(--no)"}">${chosen.ok?"✓":"✕"}</span>
+        ${chosen.ok?"정답!":"아쉬워요"}
+        ${earnedCoin?`<span class="coin">+ 코인 1</span>`:""}
+      </div>
+      ${w.ex?`<p class="full">${esc(w.ex.split("___")[0])}<u>${esc(w.blank)}</u>${esc(w.ex.split("___")[1]||"")}</p>`:""}
+      <p class="k"><b class="en">${esc(w.en)}</b> · ${esc(w.ko)}${w.note?` <span style="color:var(--ink-60);font-weight:500">(${esc(w.note)})</span>`:""}</p>
+      ${!chosen.ok?`<p class="note">이 단어는 <b>내 단어장</b>에 담았어요.</p>`
+                 :(mastered?`<p class="note">단어장에서 졸업했어요! 🎉</p>`:"")}
+      <button class="btn sm" id="next" style="margin-top:13px">다음 문제</button>
+    </div>`;
+  $("#next").addEventListener("click",()=>{
+    if(S.coins>=10 && S.cards.length<10){ drawCard(); }
+    if(reviewMode && Object.keys(S.book).length===0){ finish(true); return; }
+    if(reviewMode){ pool = Object.keys(S.book).map(k=>byEn[k]).filter(Boolean); }
+    nextQuestion();
+  });
+  $("#next").focus({preventScroll:true});
+  $("#q-result").scrollIntoView({behavior:"smooth",block:"nearest"});
+}
+
+function finish(cleared){
+  $("#quiz").classList.add("hide");
+  $("#setup").classList.remove("hide");
+  paintGems();
+  if(session.n===0) return;
+  const rate = Math.round(session.ok/session.n*100);
+  modal(`
+    <p class="kicker">${cleared?"단어장 복습 완료":"이번 판 결과"}</p>
+    <h3>${session.ok} / ${session.n} 정답</h3>
+    <p class="msg">${cleared?"단어장을 모두 비웠어요. 정말 잘했어요!":`정답률 ${rate}% · 코인 ${session.ok}개를 받았어요.`}</p>
+    <button class="btn" data-close>확인</button>
+  `);
+}
+$("#quit").addEventListener("click",()=>finish(false));
+
+/* =========================================================
+   10. 내 단어장
+   ========================================================= */
+function bookList(){
+  return Object.entries(S.book)
+    .map(([en,v])=>({w:byEn[en], v}))
+    .filter(x=>x.w)
+    .sort((a,b)=> b.v.miss-a.v.miss || b.v.at-a.v.at);
+}
+function paintBook(){
+  const list=bookList();
+  $("#wb-empty").classList.toggle("hide", list.length>0);
+  $("#review").disabled = list.length===0;
+  $("#review").style.opacity = list.length? 1 : .45;
+  $("#wb-sub").textContent = list.length
+    ? `${list.length}개의 단어가 기다리고 있어요. 복습에서 두 번 맞히면 졸업!`
+    : "틀린 단어가 자동으로 모여요. 복습에서 두 번 맞히면 졸업!";
+  $("#wlist").innerHTML = list.map(({w,v})=>`
+    <li class="witem">
+      <div class="wtop">
+        <span class="w">${esc(w.en)}</span>
+        <span class="tries">틀림 ${v.miss}회 · 남은 ${v.left}회</span>
+        <button class="del" data-del="${esc(w.en)}">지우기</button>
+      </div>
+      <p class="wmean">${esc(w.ko)}${w.pos?` <span style="font-size:14px;color:var(--ink-60)">${esc(w.pos)}</span>`:""}</p>
+      ${w.ex?`<p class="wex">${esc(w.ex.replace("___", w.blank))}</p>`:""}
+    </li>`).join("");
+  $$("#wlist .del").forEach(b=>b.addEventListener("click",()=>{
+    delete S.book[b.dataset.del]; save(); paintBook();
+  }));
+}
+$("#review").addEventListener("click",()=>{
+  let list = bookList().map(x=>x.w);
+  if(!list.length) return;
+  // 보기 4개를 위해 단어가 모자라면 전체에서 채움
+  if(list.length<4){
+    const extra = shuffle(WORDS.filter(w=>!list.includes(w))).slice(0,4-list.length);
+    startGame(list.concat(extra), true);
+  }else{
+    startGame(list, true);
+  }
+});
+
+/* ---- 백업 / 복원 ---- */
+$("#backup").addEventListener("click",()=>{
+  const code = btoa(unescape(encodeURIComponent(JSON.stringify(S))));
+  modal(`
+    <p class="kicker">기기를 바꿀 때</p>
+    <h3>백업 / 복원</h3>
+    <p class="msg">아래 코드를 복사해 두었다가, 새 기기에서 붙여넣고 [복원]을 누르세요.</p>
+    <textarea id="bkcode" spellcheck="false">${esc(code)}</textarea>
+    <button class="btn sm" id="bkcopy" style="margin-top:10px">코드 복사</button>
+    <button class="btn sm ghost" id="bkload" style="margin-top:8px">붙여넣은 코드로 복원</button>
+    <button class="btn sm ghost" data-close style="margin-top:8px">닫기</button>
+  `);
+  $("#bkcopy").addEventListener("click",async()=>{
+    const t=$("#bkcode"); t.select();
+    try{ await navigator.clipboard.writeText(t.value); $("#bkcopy").textContent="복사했어요!"; }
+    catch(e){ document.execCommand("copy"); $("#bkcopy").textContent="복사했어요!"; }
+  });
+  $("#bkload").addEventListener("click",()=>{
+    try{
+      const data=JSON.parse(decodeURIComponent(escape(atob($("#bkcode").value.trim()))));
+      S=Object.assign({},DEF,data); save();
+      paintPurse(); paintGems(); paintBook();
+      $("#bkload").textContent="복원 완료!";
+    }catch(e){ $("#bkload").textContent="코드를 다시 확인해 주세요"; }
+  });
+});
+
+/* =========================================================
+   11. 시작
+   ========================================================= */
+paintPurse(); paintGems(); paintBook();
+document.addEventListener("keydown",e=>{
+  if($("#quiz").classList.contains("hide")) return;
+  if(e.key>="1"&&e.key<="4"){
+    const b=$$("#q-options .opt")[+e.key-1]; if(b&&!b.disabled) b.click();
+  }
+  if(e.key==="Enter"){ const n=$("#next"); if(n) n.click(); }
+});
+</script>
+</body>
+</html>
