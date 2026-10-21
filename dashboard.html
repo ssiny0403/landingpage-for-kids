@@ -1,0 +1,4355 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>씬잉글리쉬 스튜디오 — 운영 대시보드</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+/* === 전역 변수 === */
+:root {
+  --primary: #92308D;
+  --primary-dark: #6B1F68;
+  --primary-light: #D4A8D2;
+  --bg: #F5F3F7;
+  --surface: #FFFFFF;
+  --text: #2D2D2D;
+  --text-muted: #6B6B6B;
+  --border: #E5E0E8;
+  --green: #27ae60;
+  --orange: #e67e22;
+  --red: #e74c3c;
+  --sidebar-w: 220px;
+  --radius: 10px;
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+
+body {
+  font-family: 'Noto Sans KR', 'Apple SD Gothic Neo', sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  font-size: 14px;
+  display: flex;
+  min-height: 100vh;
+}
+
+/* === 사이드바 === */
+#sidebar {
+  width: var(--sidebar-w);
+  background: var(--primary-dark);
+  color: #fff;
+  display: flex;
+  flex-direction: column;
+  position: fixed;
+  top: 0; left: 0; bottom: 0;
+  z-index: 100;
+}
+
+#sidebar .logo {
+  padding: 20px 16px 16px;
+  border-bottom: 1px solid rgba(255,255,255,0.15);
+}
+
+#sidebar .logo h1 {
+  font-size: 15px;
+  font-weight: 700;
+  line-height: 1.3;
+  color: #fff;
+}
+
+#sidebar .logo p {
+  font-size: 11px;
+  color: var(--primary-light);
+  margin-top: 3px;
+}
+
+#sidebar nav {
+  flex: 1;
+  padding: 12px 0;
+  overflow-y: auto;
+}
+
+#sidebar nav a {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 16px;
+  color: rgba(255,255,255,0.8);
+  text-decoration: none;
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.15s;
+  border-left: 3px solid transparent;
+}
+
+#sidebar nav a:hover { background: rgba(255,255,255,0.1); color: #fff; }
+#sidebar nav a.active { background: rgba(255,255,255,0.15); color: #fff; border-left-color: var(--primary-light); }
+#sidebar nav a .icon { font-size: 16px; width: 20px; text-align: center; }
+
+#sidebar .backup-section {
+  padding: 12px;
+  border-top: 1px solid rgba(255,255,255,0.15);
+}
+
+#sidebar .backup-section button {
+  width: 100%;
+  padding: 8px;
+  border: none;
+  border-radius: 6px;
+  font-size: 12px;
+  font-family: inherit;
+  cursor: pointer;
+  margin-bottom: 6px;
+  font-weight: 600;
+}
+
+.btn-export { background: var(--primary-light); color: var(--primary-dark); }
+.btn-import { background: rgba(255,255,255,0.15); color: #fff; }
+
+/* === 메인 콘텐츠 === */
+#main {
+  margin-left: var(--sidebar-w);
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+}
+
+#topbar {
+  background: var(--surface);
+  border-bottom: 1px solid var(--border);
+  padding: 14px 24px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  position: sticky;
+  top: 0;
+  z-index: 50;
+}
+
+#topbar h2 { font-size: 17px; font-weight: 700; color: var(--primary-dark); }
+
+#backup-alert {
+  background: #fff3cd;
+  border: 1px solid #ffc107;
+  color: #856404;
+  padding: 8px 16px;
+  font-size: 12px;
+  display: none;
+  justify-content: space-between;
+  align-items: center;
+}
+
+#page-content { padding: 24px; flex: 1; }
+
+/* === 공통 컴포넌트 === */
+.card {
+  background: var(--surface);
+  border-radius: var(--radius);
+  padding: 20px;
+  border: 1px solid var(--border);
+  margin-bottom: 16px;
+}
+
+.card-title {
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--primary-dark);
+  margin-bottom: 16px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.stats-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 14px;
+  margin-bottom: 20px;
+}
+
+.stat-card {
+  background: var(--surface);
+  border-radius: var(--radius);
+  padding: 16px 20px;
+  border: 1px solid var(--border);
+  text-align: center;
+}
+
+.stat-card .val { font-size: 28px; font-weight: 700; color: var(--primary); }
+.stat-card .label { font-size: 12px; color: var(--text-muted); margin-top: 4px; }
+
+.btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 16px;
+  border-radius: 6px;
+  font-size: 13px;
+  font-family: inherit;
+  font-weight: 600;
+  cursor: pointer;
+  border: none;
+  transition: all 0.15s;
+}
+
+.btn-primary { background: var(--primary); color: #fff; }
+.btn-primary:hover { background: var(--primary-dark); }
+.btn-sm { padding: 5px 10px; font-size: 12px; }
+.btn-ghost { background: transparent; border: 1px solid var(--border); color: var(--text); }
+.btn-ghost:hover { border-color: var(--primary); color: var(--primary); }
+.btn-danger { background: var(--red); color: #fff; }
+.btn-danger:hover { background: #c0392b; }
+
+table { width: 100%; border-collapse: collapse; }
+th { background: var(--bg); padding: 10px 12px; text-align: left; font-size: 12px; font-weight: 600; color: var(--text-muted); border-bottom: 1px solid var(--border); }
+td { padding: 10px 12px; border-bottom: 1px solid var(--border); font-size: 13px; vertical-align: middle; }
+tr:last-child td { border-bottom: none; }
+tr:hover td { background: var(--bg); }
+
+.badge {
+  display: inline-block;
+  padding: 2px 8px;
+  border-radius: 12px;
+  font-size: 11px;
+  font-weight: 600;
+}
+
+.badge-green { background: #d4edda; color: #155724; }
+.badge-orange { background: #fff3cd; color: #856404; }
+.badge-red { background: #f8d7da; color: #721c24; }
+.badge-blue { background: #d1ecf1; color: #0c5460; }
+.badge-purple { background: #e8d5f0; color: var(--primary-dark); }
+.badge-gray { background: #e9ecef; color: #495057; }
+
+/* === 모달 === */
+.modal-overlay {
+  display: none;
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.45);
+  z-index: 200;
+  align-items: center;
+  justify-content: center;
+}
+
+.modal-overlay.open { display: flex; }
+
+.modal {
+  background: var(--surface);
+  border-radius: var(--radius);
+  padding: 24px;
+  width: 560px;
+  max-width: 95vw;
+  max-height: 90vh;
+  overflow-y: auto;
+  box-shadow: 0 20px 60px rgba(0,0,0,0.2);
+}
+
+.modal h3 { font-size: 16px; font-weight: 700; margin-bottom: 20px; color: var(--primary-dark); }
+
+.form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+.form-full { grid-column: 1 / -1; }
+
+.form-group { display: flex; flex-direction: column; gap: 5px; }
+.form-group label { font-size: 12px; font-weight: 600; color: var(--text-muted); }
+
+.form-group input,
+.form-group select,
+.form-group textarea {
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 8px 10px;
+  font-size: 13px;
+  font-family: inherit;
+  color: var(--text);
+  transition: border-color 0.15s;
+}
+
+.form-group input:focus,
+.form-group select:focus,
+.form-group textarea:focus {
+  outline: none;
+  border-color: var(--primary);
+}
+
+.form-group textarea { resize: vertical; min-height: 70px; }
+
+.modal-footer {
+  margin-top: 20px;
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+}
+
+/* === 검색/필터 바 === */
+.filter-bar {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 16px;
+  flex-wrap: wrap;
+  align-items: center;
+}
+
+.filter-bar input,
+.filter-bar select {
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 7px 12px;
+  font-size: 13px;
+  font-family: inherit;
+  color: var(--text);
+}
+
+.filter-bar input:focus,
+.filter-bar select:focus { outline: none; border-color: var(--primary); }
+
+.filter-bar input { flex: 1; min-width: 180px; }
+
+/* === 토글 버튼 === */
+.toggle-btn {
+  padding: 5px 12px;
+  border-radius: 20px;
+  border: none;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  font-family: inherit;
+  transition: all 0.15s;
+}
+
+.toggle-attend { background: #d4edda; color: #155724; }
+.toggle-late   { background: #fff3cd; color: #856404; }
+.toggle-absent { background: #f8d7da; color: #721c24; }
+.toggle-done   { background: #d4edda; color: #155724; }
+.toggle-partial{ background: #fff3cd; color: #856404; }
+.toggle-undone { background: #f8d7da; color: #721c24; }
+.toggle-ready  { background: #d4edda; color: #155724; }
+.toggle-notready{ background: #f8d7da; color: #721c24; }
+
+/* === 학생 상세 === */
+#student-detail { display: none; }
+
+.detail-header {
+  background: var(--primary);
+  color: #fff;
+  border-radius: var(--radius);
+  padding: 20px 24px;
+  margin-bottom: 16px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.detail-header .name { font-size: 22px; font-weight: 700; }
+.detail-header .sub { font-size: 13px; opacity: 0.85; margin-top: 4px; }
+
+.detail-tabs {
+  display: flex;
+  gap: 4px;
+  margin-bottom: 16px;
+  border-bottom: 2px solid var(--border);
+  padding-bottom: 0;
+}
+
+.detail-tab {
+  padding: 8px 16px;
+  border-radius: 6px 6px 0 0;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  border: none;
+  background: transparent;
+  color: var(--text-muted);
+  font-family: inherit;
+  border-bottom: 2px solid transparent;
+  margin-bottom: -2px;
+  transition: all 0.15s;
+}
+
+.detail-tab.active { color: var(--primary); border-bottom-color: var(--primary); }
+.detail-tab:hover { color: var(--primary); }
+
+.detail-section { display: none; }
+.detail-section.active { display: block; }
+
+/* === 시간표 뷰 === */
+.timetable {
+  display: grid;
+  grid-template-columns: 80px repeat(5, 1fr);
+  gap: 1px;
+  background: var(--border);
+  border-radius: var(--radius);
+  overflow: hidden;
+}
+
+.tt-header {
+  background: var(--primary-dark);
+  color: #fff;
+  padding: 10px 8px;
+  text-align: center;
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.tt-time {
+  background: var(--bg);
+  padding: 8px 6px;
+  text-align: center;
+  font-size: 11px;
+  color: var(--text-muted);
+  font-weight: 600;
+}
+
+.tt-cell {
+  background: var(--surface);
+  padding: 6px;
+  min-height: 36px;
+}
+
+.tt-class {
+  background: var(--primary);
+  color: #fff;
+  border-radius: 5px;
+  padding: 5px 8px;
+  font-size: 11px;
+  font-weight: 600;
+  margin-bottom: 3px;
+  line-height: 1.3;
+}
+
+.tt-class .time-label { font-size: 10px; opacity: 0.8; display: block; }
+
+/* === 출결 체크 화면 === */
+.attend-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 14px 16px;
+  margin-bottom: 10px;
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.attend-card .student-name { font-weight: 700; font-size: 14px; min-width: 80px; }
+.attend-card .controls { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
+.attend-card .label { font-size: 11px; color: var(--text-muted); margin-right: -4px; }
+
+/* === 홍보 칸반 === */
+.kanban {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 16px;
+}
+
+.kanban-col { background: var(--bg); border-radius: var(--radius); padding: 14px; }
+.kanban-col-title { font-size: 13px; font-weight: 700; color: var(--text-muted); margin-bottom: 12px; display: flex; align-items: center; justify-content: space-between; }
+.kanban-item { background: var(--surface); border-radius: 8px; padding: 12px; border: 1px solid var(--border); margin-bottom: 8px; }
+.kanban-item .k-title { font-weight: 600; font-size: 13px; margin-bottom: 6px; }
+.kanban-item .k-meta { font-size: 11px; color: var(--text-muted); }
+
+/* === 인쇄 === */
+@media print {
+  #sidebar, #topbar, #backup-alert, .no-print { display: none !important; }
+  #main { margin-left: 0; }
+  body { background: #fff; }
+  .card { border: 1px solid #ccc; page-break-inside: avoid; }
+}
+
+/* === 반응형 === */
+@media (max-width: 900px) {
+  .stats-grid { grid-template-columns: repeat(2, 1fr); }
+  .form-grid { grid-template-columns: 1fr; }
+  .kanban { grid-template-columns: 1fr; }
+}
+
+/* === 데일리 알림장 === */
+.daily-class-block {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  margin-bottom: 20px;
+  overflow: hidden;
+}
+
+.daily-class-header {
+  background: var(--primary);
+  color: #fff;
+  padding: 12px 18px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.daily-class-header .class-name { font-size: 15px; font-weight: 700; }
+.daily-class-header .class-time { font-size: 12px; opacity: 0.85; }
+
+.daily-hw-area {
+  padding: 14px 18px;
+  border-bottom: 1px solid var(--border);
+  background: #faf8fc;
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+}
+
+.daily-hw-area label {
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--primary-dark);
+  white-space: nowrap;
+  padding-top: 8px;
+}
+
+.daily-hw-area textarea {
+  flex: 1;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 8px 10px;
+  font-size: 13px;
+  font-family: inherit;
+  resize: vertical;
+  min-height: 64px;
+}
+
+.daily-hw-area textarea:focus { outline: none; border-color: var(--primary); }
+
+.daily-student-list { padding: 12px 18px; }
+
+.daily-student-card {
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  margin-bottom: 10px;
+  overflow: hidden;
+}
+
+.daily-student-top {
+  display: flex;
+  align-items: center;
+  padding: 10px 14px;
+  gap: 12px;
+  background: var(--bg);
+  border-bottom: 1px solid var(--border);
+  flex-wrap: wrap;
+}
+
+.daily-student-top .s-name {
+  font-weight: 700;
+  font-size: 14px;
+  min-width: 70px;
+}
+
+.daily-preview {
+  padding: 10px 14px;
+  font-size: 12px;
+  line-height: 1.9;
+  color: var(--text);
+  font-family: 'Noto Sans KR', monospace;
+  white-space: pre-wrap;
+  background: #fff;
+}
+
+.daily-copy-btn {
+  display: flex;
+  justify-content: flex-end;
+  padding: 8px 14px;
+  background: #fff;
+  border-top: 1px solid var(--border);
+}
+
+.copy-success {
+  color: var(--green) !important;
+  border-color: var(--green) !important;
+}
+
+/* === 역할·원생관리 === */
+.role-chip {
+  margin-top: 10px;
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 6px;
+  padding: 6px 10px;
+  border-radius: 6px;
+  border: 1px solid rgba(255,255,255,0.3);
+  background: rgba(255,255,255,0.1);
+  color: #fff;
+  font-family: inherit;
+  font-size: 12px;
+  cursor: pointer;
+}
+.role-chip:hover { background: rgba(255,255,255,0.18); }
+.role-chip .role-sub { font-size: 10px; color: var(--primary-light); }
+
+.seg { display: inline-flex; border: 1px solid var(--border); border-radius: 6px; overflow: hidden; }
+.seg button { border: none; background: var(--surface); padding: 7px 14px; font-family: inherit; font-size: 13px; font-weight: 600; color: var(--text-muted); cursor: pointer; }
+.seg button.active { background: var(--primary); color: #fff; }
+
+.badge-sample { background: #ede7f6; color: #4a2c7a; border: 1px dashed #8e6fc1; }
+.sample-row td { background: #fbf9fe; }
+
+.notice {
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 10px 14px;
+  font-size: 12px;
+  color: var(--text-muted);
+  line-height: 1.6;
+  margin-bottom: 16px;
+}
+
+.conflict-item {
+  display: flex;
+  gap: 10px;
+  align-items: flex-start;
+  padding: 8px 0;
+  border-bottom: 1px solid var(--border);
+  font-size: 13px;
+}
+.conflict-item:last-child { border-bottom: none; }
+
+.unsaved-tag { font-size: 11px; font-weight: 600; color: #856404; background: #fff3cd; border-radius: 10px; padding: 1px 8px; }
+.saved-tag { font-size: 11px; font-weight: 600; color: #155724; background: #d4edda; border-radius: 10px; padding: 1px 8px; }
+.attend-card.on-leave { opacity: 0.7; background: var(--bg); }
+
+.mini-stats { display: flex; gap: 20px; flex-wrap: wrap; }
+.mini-stats .ms-val { font-size: 20px; font-weight: 700; color: var(--primary); }
+.mini-stats .ms-label { font-size: 11px; color: var(--text-muted); }
+
+.check-row { display: flex; flex-wrap: wrap; gap: 6px 14px; font-size: 13px; }
+.check-row label { display: inline-flex; align-items: center; gap: 4px; font-weight: 500; color: var(--text); }
+
+.class-roster { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 12px; }
+.roster-box { border: 1px solid var(--border); border-radius: 8px; padding: 12px; }
+.roster-box h4 { font-size: 13px; color: var(--primary-dark); margin-bottom: 8px; display: flex; justify-content: space-between; }
+.roster-student { display: flex; justify-content: space-between; align-items: center; padding: 4px 0; font-size: 13px; }
+
+.page { display: none; }
+.page.active { display: block; }
+
+.text-muted { color: var(--text-muted); }
+.mt-8 { margin-top: 8px; }
+.mt-16 { margin-top: 16px; }
+.flex { display: flex; }
+.gap-8 { gap: 8px; }
+.items-center { align-items: center; }
+.justify-between { justify-content: space-between; }
+</style>
+</head>
+<body>
+
+<!-- 사이드바 -->
+<div id="sidebar">
+  <div class="logo">
+    <h1>씬잉글리쉬 스튜디오</h1>
+    <p>원장 운영 대시보드</p>
+    <button class="role-chip" onclick="openRoleModal()" title="사용자 전환">
+      <span><span id="role-name">원장</span><br><span class="role-sub" id="role-sub">전체 조회·수정</span></span>
+      <span>⇄</span>
+    </button>
+  </div>
+  <nav>
+    <a onclick="showPage('dashboard')" class="active" id="nav-dashboard">
+      <span class="icon">🏠</span> 대시보드 홈
+    </a>
+    <a onclick="showPage('students')" id="nav-students">
+      <span class="icon">👩‍🎓</span> 원생 현황판
+    </a>
+    <a onclick="showPage('attendance')" id="nav-attendance">
+      <span class="icon">✅</span> 출결·수업
+    </a>
+    <a onclick="showPage('grades')" id="nav-grades">
+      <span class="icon">📊</span> 성적·진도
+    </a>
+    <a onclick="showPage('consultations')" id="nav-consultations">
+      <span class="icon">💬</span> 상담 기록
+    </a>
+    <a onclick="showPage('retention')" id="nav-retention" class="director-only">
+      <span class="icon">🔁</span> 재등록·이탈
+    </a>
+    <a onclick="showPage('marketing')" id="nav-marketing" class="director-only">
+      <span class="icon">📣</span> 홍보 관리
+    </a>
+    <a onclick="showPage('payments')" id="nav-payments" class="director-only">
+      <span class="icon">💰</span> 수강료·매출
+    </a>
+    <a onclick="showPage('daily')" id="nav-daily">
+      <span class="icon">📱</span> 데일리 알림장
+    </a>
+    <a onclick="showPage('timetable')" id="nav-timetable">
+      <span class="icon">📅</span> 반 편성·시간표
+    </a>
+  </nav>
+  <div class="backup-section director-only">
+    <button class="btn-import" style="margin-bottom:6px" onclick="openSettingsModal()">⚙ 강사·PIN·샘플 설정</button>
+    <button class="btn-export" onclick="exportData()">⬇ 데이터 백업</button>
+    <button class="btn-import" onclick="document.getElementById('importFile').click()">⬆ 데이터 복원</button>
+    <input type="file" id="importFile" accept=".json" style="display:none" onchange="importData(event)">
+    <button class="btn-import" style="margin-top:4px;background:rgba(255,255,255,0.1);border:1px dashed rgba(255,255,255,0.4)" onclick="document.getElementById('csvFile').click()">📊 엑셀CSV 가져오기</button>
+    <input type="file" id="csvFile" accept=".csv" style="display:none" onchange="openCsvImportModal(event)">
+    <button class="btn-import" style="margin-top:4px;background:rgba(255,255,255,0.08);border:1px dashed rgba(255,255,255,0.3);color:rgba(255,255,255,0.6);font-size:11px" onclick="document.getElementById('backup-reminder-overlay').classList.add('open')">🔔 백업 알림 테스트</button>
+  </div>
+</div>
+
+<!-- 메인 -->
+<div id="main">
+  <!-- 백업 알림 -->
+  <div id="backup-alert">
+    <span>⚠ 마지막 백업 후 7일 이상 지났습니다. 데이터를 백업하세요.</span>
+    <button style="border:none;background:transparent;cursor:pointer;font-weight:700" onclick="this.parentElement.style.display='none'">✕</button>
+  </div>
+  <div id="topbar">
+    <h2 id="page-title">대시보드 홈</h2>
+    <span id="today-date" style="font-size:13px;color:var(--text-muted)"></span>
+  </div>
+
+  <div id="page-content">
+
+    <!-- ===== 대시보드 홈 ===== -->
+    <div class="page active" id="page-dashboard">
+      <div class="stats-grid" id="home-stats"></div>
+
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px">
+        <div class="card">
+          <div class="card-title">오늘 수업 일정</div>
+          <div id="today-classes"></div>
+        </div>
+        <div class="card director-only">
+          <div class="card-title">미납 수강료</div>
+          <div id="unpaid-list"></div>
+        </div>
+      </div>
+
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px">
+        <div class="card">
+          <div class="card-title">팔로업 필요 상담</div>
+          <div id="followup-list"></div>
+        </div>
+        <div class="card director-only">
+          <div class="card-title">이번 달 매출</div>
+          <div id="monthly-revenue"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ===== 학생 관리 ===== -->
+    <div class="page" id="page-students">
+      <!-- 학생 목록 -->
+      <div id="students-list-view">
+        <div class="filter-bar">
+          <input type="text" id="student-search" placeholder="이름·학교·학부모 검색…" oninput="renderStudentList()">
+          <select id="student-class-filter" data-class-select onchange="renderStudentList()">
+            <option value="">전체 반</option>
+          </select>
+          <select id="student-grade-filter" onchange="renderStudentList()">
+            <option value="">전체 학년</option>
+          </select>
+          <select id="student-status-filter" onchange="renderStudentList()">
+            <option value="">전체 상태</option>
+            <option>재원</option>
+            <option>휴원</option>
+            <option>퇴원</option>
+          </select>
+          <select id="student-sample-filter" onchange="renderStudentList()">
+            <option value="">실제+샘플</option>
+            <option value="real">실제 자료만</option>
+            <option value="sample">샘플만</option>
+          </select>
+          <button class="btn btn-primary director-only" onclick="openStudentModal()">+ 학생 등록</button>
+        </div>
+        <div id="student-summary" class="mini-stats card" style="padding:14px 20px"></div>
+        <div class="card" style="padding:0;overflow:auto">
+          <table>
+            <thead>
+              <tr>
+                <th>이름</th><th>반</th><th>학교/학년</th><th>상태</th>
+                <th class="director-only">수강료</th><th>학부모</th><th>등록일</th><th>관리</th>
+              </tr>
+            </thead>
+            <tbody id="student-tbody"></tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- 학생 상세 -->
+      <div id="student-detail">
+        <div class="detail-header">
+          <div>
+            <div class="name" id="detail-name"></div>
+            <div class="sub" id="detail-sub"></div>
+          </div>
+          <div style="display:flex;gap:8px;flex-wrap:wrap">
+            <button class="btn btn-sm director-only" style="background:rgba(255,255,255,0.2);color:#fff;border:1px solid rgba(255,255,255,0.4)" onclick="openReportModal()">📄 리포트</button>
+            <button class="btn btn-sm director-only" style="background:rgba(255,255,255,0.2);color:#fff;border:1px solid rgba(255,255,255,0.4)" onclick="editStudentFromDetail()">✏ 수정</button>
+            <button class="btn btn-sm director-only" style="background:rgba(255,255,255,0.2);color:#fff;border:1px solid rgba(255,255,255,0.4)" onclick="openMoveModal(currentDetailId)">⇄ 반 이동</button>
+            <button class="btn btn-sm director-only" style="background:rgba(255,255,255,0.2);color:#fff;border:1px solid rgba(255,255,255,0.4)" onclick="openStatusModal(currentDetailId)">상태 변경</button>
+            <button class="btn btn-sm" style="background:rgba(255,255,255,0.2);color:#fff;border:1px solid rgba(255,255,255,0.4)" onclick="closeStudentDetail()">← 목록으로</button>
+          </div>
+        </div>
+
+        <div class="detail-tabs">
+          <button class="detail-tab active" data-tab="info" onclick="switchDetailTab('info')">기본 정보</button>
+          <button class="detail-tab" data-tab="attend" onclick="switchDetailTab('attend')">출결 누적</button>
+          <button class="detail-tab" data-tab="grades" onclick="switchDetailTab('grades')">성적·진도</button>
+          <button class="detail-tab" data-tab="consult" onclick="switchDetailTab('consult')">상담 기록</button>
+          <button class="detail-tab" data-tab="history" onclick="switchDetailTab('history')">반·상태 이력</button>
+          <button class="detail-tab director-only" data-tab="payment" onclick="switchDetailTab('payment')">수강료</button>
+        </div>
+
+        <div class="detail-section active" id="detail-info"></div>
+        <div class="detail-section" id="detail-attend"></div>
+        <div class="detail-section" id="detail-grades"></div>
+        <div class="detail-section" id="detail-consult"></div>
+        <div class="detail-section" id="detail-history"></div>
+        <div class="detail-section" id="detail-payment"></div>
+      </div>
+    </div>
+
+    <!-- ===== 출결·수업 ===== -->
+    <div class="page" id="page-attendance">
+      <div class="filter-bar">
+        <div class="seg">
+          <button id="attend-mode-date" class="active" onclick="setAttendMode('date')">날짜별 일괄 입력</button>
+          <button id="attend-mode-student" onclick="setAttendMode('student')">학생별 누적 조회</button>
+        </div>
+      </div>
+      <div id="attend-date-view">
+        <div class="filter-bar">
+          <input type="date" id="attend-date" onchange="renderAttendancePage()">
+          <select id="attend-class-filter" data-class-select onchange="renderAttendancePage()">
+            <option value="">오늘 수업 반 전체</option>
+          </select>
+          <button class="btn btn-ghost" onclick="markAllPresent()">모두 출석으로</button>
+          <button class="btn btn-primary" onclick="saveAllAttendance()">✓ 전체 저장</button>
+        </div>
+        <div id="attendance-cards"></div>
+      </div>
+      <div id="attend-student-view" style="display:none">
+        <div class="filter-bar">
+          <select id="cum-student" onchange="renderAttendanceCumulative()"></select>
+          <input type="date" id="cum-from" onchange="renderAttendanceCumulative()" style="flex:0 0 auto;min-width:0">
+          <span class="text-muted">~</span>
+          <input type="date" id="cum-to" onchange="renderAttendanceCumulative()" style="flex:0 0 auto;min-width:0">
+        </div>
+        <div id="attendance-cumulative"></div>
+      </div>
+    </div>
+
+    <!-- ===== 수강료·매출 ===== -->
+    <div class="page" id="page-payments">
+      <div class="filter-bar">
+        <select id="payment-month" onchange="renderPaymentsPage()"></select>
+        <select id="payment-status-filter" onchange="renderPaymentsPage()">
+          <option value="">전체</option>
+          <option>미납</option>
+          <option>완납</option>
+        </select>
+        <button class="btn btn-primary" onclick="openPaymentModal()">+ 납부 추가</button>
+      </div>
+      <div id="monthly-summary" class="card" style="margin-bottom:16px"></div>
+      <div class="card" style="padding:0;overflow:hidden">
+        <table>
+          <thead>
+            <tr><th>학생</th><th>반</th><th>납부예정일</th><th>금액</th><th>상태</th><th>납부일</th><th>비고</th><th>관리</th></tr>
+          </thead>
+          <tbody id="payment-tbody"></tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- ===== 상담 기록 ===== -->
+    <div class="page" id="page-consultations">
+      <div class="filter-bar">
+        <input type="text" id="consult-search" placeholder="학생 이름 검색…" oninput="renderConsultationsPage()">
+        <select id="consult-followup-filter" onchange="renderConsultationsPage()">
+          <option value="">전체</option>
+          <option value="pending">팔로업 필요</option>
+          <option value="done">완료</option>
+        </select>
+        <button class="btn btn-primary" onclick="openConsultModal()">+ 상담 추가</button>
+      </div>
+      <div class="card" style="padding:0;overflow:hidden">
+        <table>
+          <thead>
+            <tr><th>날짜</th><th>학생</th><th>채널</th><th>내용 요약</th><th>후속 조치</th><th>완료</th><th>관리</th></tr>
+          </thead>
+          <tbody id="consult-tbody"></tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- ===== 성적·진도 ===== -->
+    <div class="page" id="page-grades">
+      <div class="filter-bar">
+        <input type="text" id="grade-search" placeholder="학생 이름 검색…" oninput="renderGradesPage()">
+        <select id="grade-type-filter" onchange="renderGradesPage()">
+          <option value="">전체 유형</option>
+          <option>단어시험</option>
+          <option>단원평가</option>
+          <option>듣기시험</option>
+          <option>기타</option>
+        </select>
+        <button class="btn btn-primary" onclick="openGradeModal()">+ 성적 추가</button>
+      </div>
+      <div class="card" style="padding:0;overflow:hidden">
+        <table>
+          <thead>
+            <tr><th>날짜</th><th>학생</th><th>유형</th><th>전체</th><th>맞은수</th><th>점수</th><th>백분위</th><th>교재</th><th>시험범위</th><th>메모</th><th>관리</th></tr>
+          </thead>
+          <tbody id="grade-tbody"></tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- ===== 재등록·이탈 ===== -->
+    <div class="page" id="page-retention">
+      <div class="notice">
+        이 화면은 <strong>입력된 기록(등록·상태 변경 이력, 수납, 상담)</strong>만 그대로 보여줍니다.
+        출결이나 성적으로 학생을 자동 분류하거나 퇴원 처리하지 않습니다.
+        재등록 확인 단계와 퇴원은 원장님이 직접 선택해야만 바뀝니다.
+      </div>
+      <div class="filter-bar">
+        <input type="text" id="ret-search" placeholder="학생 이름 검색…" oninput="renderRetentionPage()">
+        <select id="ret-status-filter" onchange="renderRetentionPage()">
+          <option value="">전체 상태</option>
+          <option>재원</option>
+          <option>휴원</option>
+          <option>퇴원</option>
+        </select>
+        <select id="ret-renewal-filter" onchange="renderRetentionPage()">
+          <option value="">재등록 확인 전체</option>
+          <option>미확인</option>
+          <option>재등록 의사 확인</option>
+          <option>재등록 완료</option>
+          <option>이탈 의사 확인</option>
+        </select>
+      </div>
+      <div class="card" style="padding:0;overflow:auto">
+        <table>
+          <thead>
+            <tr><th>학생</th><th>반</th><th>상태</th><th>등록 기간</th><th>최근 완납</th><th>마지막 상담</th><th>재등록 확인</th><th>관리</th></tr>
+          </thead>
+          <tbody id="retention-tbody"></tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- ===== 홍보 관리 ===== -->
+    <div class="page" id="page-marketing">
+      <div class="filter-bar">
+        <select id="mkt-channel-filter" onchange="renderMarketingPage()">
+          <option value="">전체 채널</option>
+          <option>블로그</option>
+          <option>인스타</option>
+          <option>유튜브</option>
+        </select>
+        <button class="btn btn-primary" onclick="openMarketingModal()">+ 콘텐츠 추가</button>
+      </div>
+      <div class="kanban" id="marketing-kanban"></div>
+    </div>
+
+    <!-- ===== 데일리 알림장 ===== -->
+    <div class="page" id="page-daily">
+      <div class="filter-bar">
+        <input type="date" id="daily-date" onchange="renderDailyPage()">
+        <button class="btn btn-primary" onclick="renderDailyPage()">🔄 새로고침</button>
+        <span style="font-size:12px;color:var(--text-muted);margin-left:auto">출결·성적 입력 후 여기서 카톡용 알림장을 복사하세요</span>
+      </div>
+      <div id="daily-classes"></div>
+    </div>
+
+    <!-- ===== 시간표 ===== -->
+    <div class="page" id="page-timetable">
+      <div class="card">
+        <div class="card-title">시간 중복 확인 <span style="font-size:11px;font-weight:400;color:var(--text-muted)">학생 · 강사 · 교실 기준</span></div>
+        <div id="conflict-list"></div>
+      </div>
+      <div class="card">
+        <div class="card-title">주간 시간표</div>
+        <div style="overflow-x:auto"><div class="timetable" id="timetable-grid"></div></div>
+      </div>
+      <div class="card">
+        <div class="card-title">
+          <span>수업 목록 (요일·시간·담당 강사·교실)</span>
+          <button class="btn btn-primary btn-sm director-only" onclick="openSessionModal()">+ 수업 추가</button>
+        </div>
+        <div style="overflow-x:auto">
+          <table>
+            <thead><tr><th>반</th><th>요일</th><th>시간</th><th>담당 강사</th><th>교실</th><th>학생 수</th><th class="director-only">관리</th></tr></thead>
+            <tbody id="session-tbody"></tbody>
+          </table>
+        </div>
+      </div>
+      <div class="card">
+        <div class="card-title">반 편성 현황 <span style="font-size:11px;font-weight:400;color:var(--text-muted)">재원·휴원 학생 · ＋표시는 추가 수강</span></div>
+        <div class="class-roster" id="class-roster"></div>
+      </div>
+      <div class="card">
+        <div class="card-title">반 이동 이력</div>
+        <div style="overflow-x:auto">
+          <table>
+            <thead><tr><th>날짜</th><th>학생</th><th>이전 반</th><th>이동한 반</th><th>사유</th><th>처리자</th></tr></thead>
+            <tbody id="move-history-tbody"></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+  </div><!-- /page-content -->
+</div><!-- /main -->
+
+<!-- ===== 모달들 ===== -->
+
+<!-- 학생 추가/수정 모달 -->
+<div class="modal-overlay" id="student-modal">
+  <div class="modal">
+    <h3 id="student-modal-title">학생 추가</h3>
+    <div class="form-grid">
+      <div class="form-group">
+        <label>이름 *</label>
+        <input type="text" id="s-name" placeholder="홍길동">
+      </div>
+      <div class="form-group">
+        <label>반 *</label>
+        <select id="s-class" data-class-select onchange="autoFillTuition()">
+          <option value="">선택</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label>학교</label>
+        <input type="text" id="s-school" placeholder="거학초등학교">
+      </div>
+      <div class="form-group">
+        <label>학년</label>
+        <input type="text" id="s-grade" placeholder="3학년">
+      </div>
+      <div class="form-group">
+        <label>프로그램</label>
+        <select id="s-program">
+          <option>키즈/주니어</option>
+          <option>중등</option>
+          <option>성인</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label>상태</label>
+        <select id="s-status">
+          <option>재원</option>
+          <option>휴원</option>
+          <option>퇴원</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label>수강료(월, ₩)</label>
+        <input type="number" id="s-tuition" placeholder="210000">
+      </div>
+      <div class="form-group">
+        <label>납부 주기</label>
+        <select id="s-cycle">
+          <option>월납</option>
+          <option>분기납</option>
+          <option>선납</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label>학부모 성함</label>
+        <input type="text" id="s-parent" placeholder="김철수">
+      </div>
+      <div class="form-group">
+        <label>학부모 전화</label>
+        <input type="tel" id="s-phone" placeholder="010-0000-0000">
+      </div>
+      <div class="form-group">
+        <label>카카오 ID</label>
+        <input type="text" id="s-kakao">
+      </div>
+      <div class="form-group">
+        <label>등록일</label>
+        <input type="date" id="s-enroll">
+      </div>
+      <div class="form-group form-full">
+        <label>추가 수강 반 (보충·특강 등 다른 반 수업도 듣는 경우)</label>
+        <div class="check-row" id="s-extra"></div>
+      </div>
+      <div class="form-group form-full">
+        <label>메모</label>
+        <textarea id="s-memo" placeholder="특이사항, 주의사항 등"></textarea>
+      </div>
+      <div class="form-group form-full">
+        <label style="display:flex;align-items:center;gap:6px;color:var(--text)">
+          <input type="checkbox" id="s-sample"> 샘플(연습용) 학생 — 실제 원생이 아니면 체크하세요. 통계에서 제외됩니다.
+        </label>
+      </div>
+      <div class="form-full notice" id="s-edit-hint" style="margin:0;display:none">
+        반·재원 상태는 이력이 남도록 <strong>⇄ 반 이동</strong> / <strong>상태 변경</strong> 버튼으로만 바꿀 수 있습니다.
+        반 이동·휴원·퇴원을 해도 출결·성적·수납 기록은 그대로 보존됩니다.
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost" onclick="closeModal('student-modal')">취소</button>
+      <button class="btn btn-primary" onclick="saveStudent()">저장</button>
+    </div>
+  </div>
+</div>
+
+<!-- 납부 추가/수정 모달 -->
+<div class="modal-overlay" id="payment-modal">
+  <div class="modal">
+    <h3 id="payment-modal-title">납부 내역 추가</h3>
+    <div class="form-grid">
+      <div class="form-group">
+        <label>학생 *</label>
+        <select id="p-student"></select>
+      </div>
+      <div class="form-group">
+        <label>금액(₩) *</label>
+        <input type="number" id="p-amount">
+      </div>
+      <div class="form-group">
+        <label>납부 예정일</label>
+        <input type="date" id="p-due">
+      </div>
+      <div class="form-group">
+        <label>납부일</label>
+        <input type="date" id="p-paid">
+      </div>
+      <div class="form-group">
+        <label>상태</label>
+        <select id="p-status">
+          <option>미납</option>
+          <option>완납</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label>방법</label>
+        <select id="p-method">
+          <option>계좌이체</option>
+          <option>현금</option>
+          <option>카드</option>
+        </select>
+      </div>
+      <div class="form-group form-full">
+        <label>비고</label>
+        <input type="text" id="p-note">
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost" onclick="closeModal('payment-modal')">취소</button>
+      <button class="btn btn-primary" onclick="savePayment()">저장</button>
+    </div>
+  </div>
+</div>
+
+<!-- 상담 추가/수정 모달 -->
+<div class="modal-overlay" id="consult-modal">
+  <div class="modal">
+    <h3 id="consult-modal-title">상담 기록 추가</h3>
+    <div class="form-grid">
+      <div class="form-group">
+        <label>학생 *</label>
+        <select id="c-student"></select>
+      </div>
+      <div class="form-group">
+        <label>날짜</label>
+        <input type="date" id="c-date">
+      </div>
+      <div class="form-group">
+        <label>채널</label>
+        <select id="c-channel">
+          <option>카톡</option>
+          <option>전화</option>
+          <option>대면</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label>팔로업 완료</label>
+        <select id="c-done">
+          <option value="false">미완료</option>
+          <option value="true">완료</option>
+        </select>
+      </div>
+      <div class="form-group form-full">
+        <label>내용 요약 *</label>
+        <textarea id="c-summary" placeholder="상담 내용을 요약해 주세요"></textarea>
+      </div>
+      <div class="form-group form-full">
+        <label>후속 조치</label>
+        <input type="text" id="c-followup" placeholder="다음에 해야 할 것">
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost" onclick="closeModal('consult-modal')">취소</button>
+      <button class="btn btn-primary" onclick="saveConsult()">저장</button>
+    </div>
+  </div>
+</div>
+
+<!-- 성적 추가/수정 모달 -->
+<div class="modal-overlay" id="grade-modal">
+  <div class="modal">
+    <h3 id="grade-modal-title">성적·진도 추가</h3>
+    <div class="form-grid">
+      <div class="form-group">
+        <label>학생 *</label>
+        <select id="g-student"></select>
+      </div>
+      <div class="form-group">
+        <label>날짜</label>
+        <input type="date" id="g-date">
+      </div>
+      <div class="form-group">
+        <label>유형</label>
+        <select id="g-type">
+          <option>단어시험</option>
+          <option>단원평가</option>
+          <option>듣기시험</option>
+          <option>기타</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label>전체 문제 수</label>
+        <input type="number" id="g-total" placeholder="20" oninput="calcScore()">
+      </div>
+      <div class="form-group">
+        <label>맞은 문제 수</label>
+        <input type="number" id="g-correct" placeholder="18" oninput="calcScore()">
+      </div>
+      <div class="form-group">
+        <label>점수 (자동계산)</label>
+        <input type="number" id="g-score" placeholder="—" readonly style="background:var(--bg);color:var(--primary);font-weight:700">
+      </div>
+      <div class="form-group">
+        <label>백분위(%)</label>
+        <input type="number" id="g-percentile" placeholder="72">
+      </div>
+      <div class="form-group">
+        <label>교재</label>
+        <input type="text" id="g-book" placeholder="Reach Higher 3A">
+      </div>
+      <div class="form-group">
+        <label>시험범위</label>
+        <input type="text" id="g-unit" placeholder="Unit 5">
+      </div>
+      <div class="form-group form-full">
+        <label>메모</label>
+        <textarea id="g-note" placeholder="특이사항"></textarea>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost" onclick="closeModal('grade-modal')">취소</button>
+      <button class="btn btn-primary" onclick="saveGrade()">저장</button>
+    </div>
+  </div>
+</div>
+
+<!-- 수업(세션) 추가/수정 모달 -->
+<div class="modal-overlay" id="session-modal">
+  <div class="modal">
+    <h3 id="session-modal-title">수업 추가</h3>
+    <div class="form-grid">
+      <div class="form-group">
+        <label>반 이름 *</label>
+        <input type="text" id="ss-name" list="ss-name-list" placeholder="뉴욕반">
+        <datalist id="ss-name-list"></datalist>
+      </div>
+      <div class="form-group">
+        <label>담당 강사</label>
+        <select id="ss-teacher"></select>
+      </div>
+      <div class="form-group form-full">
+        <label>요일 *</label>
+        <div class="check-row" id="ss-days"></div>
+      </div>
+      <div class="form-group">
+        <label>시작 시간 *</label>
+        <input type="time" id="ss-start">
+      </div>
+      <div class="form-group">
+        <label>종료 시간 *</label>
+        <input type="time" id="ss-end">
+      </div>
+      <div class="form-group form-full">
+        <label>교실</label>
+        <input type="text" id="ss-room" placeholder="예) 1강의실">
+      </div>
+    </div>
+    <div id="ss-conflicts" style="margin-top:12px"></div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost" onclick="closeModal('session-modal')">취소</button>
+      <button class="btn btn-primary" onclick="saveSession()">저장</button>
+    </div>
+  </div>
+</div>
+
+<!-- 반 이동 모달 -->
+<div class="modal-overlay" id="move-modal">
+  <div class="modal" style="width:440px">
+    <h3>⇄ 반 이동</h3>
+    <p style="font-size:13px;margin-bottom:14px"><strong id="mv-name"></strong> · 현재 반 <span id="mv-from"></span></p>
+    <div class="form-grid">
+      <div class="form-group">
+        <label>이동할 반 *</label>
+        <select id="mv-to" data-class-select onchange="previewMoveConflicts()">
+          <option value="">선택</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label>이동일 *</label>
+        <input type="date" id="mv-date">
+      </div>
+      <div class="form-group form-full">
+        <label>사유 *</label>
+        <input type="text" id="mv-reason" placeholder="예) 레벨 테스트 결과 상향 이동">
+      </div>
+    </div>
+    <div id="mv-conflicts" style="margin-top:12px"></div>
+    <p style="font-size:12px;color:var(--text-muted);margin-top:10px">이전 반에서의 출결·성적·수납 기록은 지워지지 않고 그대로 남습니다.</p>
+    <div class="modal-footer">
+      <button class="btn btn-ghost" onclick="closeModal('move-modal')">취소</button>
+      <button class="btn btn-primary" onclick="saveMove()">이동 저장</button>
+    </div>
+  </div>
+</div>
+
+<!-- 재원 상태 변경 모달 -->
+<div class="modal-overlay" id="status-modal">
+  <div class="modal" style="width:440px">
+    <h3>재원 상태 변경</h3>
+    <p style="font-size:13px;margin-bottom:14px"><strong id="st-name"></strong> · 현재 <span id="st-from"></span></p>
+    <div class="form-grid">
+      <div class="form-group">
+        <label>변경할 상태 *</label>
+        <select id="st-to">
+          <option>재원</option>
+          <option>휴원</option>
+          <option>퇴원</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label>적용일 *</label>
+        <input type="date" id="st-date">
+      </div>
+      <div class="form-group form-full">
+        <label>사유 *</label>
+        <input type="text" id="st-reason" placeholder="예) 가족 여행으로 한 달 휴원 / 학부모 상담 후 퇴원 결정">
+      </div>
+    </div>
+    <p style="font-size:12px;color:var(--text-muted);margin-top:10px">상태가 바뀌어도 출결·성적·수납·상담 기록은 삭제되지 않습니다. 휴원·퇴원 학생은 출결 집계에서 결석으로 계산되지 않습니다.</p>
+    <div class="modal-footer">
+      <button class="btn btn-ghost" onclick="closeModal('status-modal')">취소</button>
+      <button class="btn btn-primary" onclick="saveStatusChange()">변경 저장</button>
+    </div>
+  </div>
+</div>
+
+<!-- 등록·상담 이력 (재등록 관리) 모달 -->
+<div class="modal-overlay" id="retention-modal">
+  <div class="modal" style="width:620px">
+    <h3 id="rt-title">등록·상담 이력</h3>
+    <div id="rt-body"></div>
+    <div class="form-grid" style="margin-top:14px">
+      <div class="form-group">
+        <label>재등록 확인 단계 (원장 직접 선택)</label>
+        <select id="rt-renewal">
+          <option>미확인</option>
+          <option>재등록 의사 확인</option>
+          <option>재등록 완료</option>
+          <option>이탈 의사 확인</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label>확인 메모</label>
+        <input type="text" id="rt-note" placeholder="예) 11/3 전화로 다음 학기 계속 의사 확인">
+      </div>
+    </div>
+    <p style="font-size:12px;color:var(--text-muted);margin-top:8px">이 단계는 메모용이며 재원 상태를 바꾸지 않습니다. 휴원·퇴원은 아래 버튼으로 따로 처리하세요.</p>
+    <div class="modal-footer">
+      <button class="btn btn-ghost" onclick="openStatusModal(editingId['retention-modal'])">상태 변경(휴원·퇴원·복귀)</button>
+      <button class="btn btn-ghost" onclick="closeModal('retention-modal')">닫기</button>
+      <button class="btn btn-primary" onclick="saveRenewal()">재등록 확인 저장</button>
+    </div>
+  </div>
+</div>
+
+<!-- 사용자(역할) 전환 모달 -->
+<div class="modal-overlay" id="role-modal">
+  <div class="modal" style="width:400px">
+    <h3>누가 사용하나요?</h3>
+    <div class="form-group">
+      <label>사용자</label>
+      <select id="role-select" onchange="document.getElementById('role-pin-wrap').style.display = this.value === 'director' && getDirectorPinHash() ? '' : 'none'"></select>
+    </div>
+    <div class="form-group mt-8" id="role-pin-wrap" style="display:none">
+      <label>원장 PIN</label>
+      <input type="password" id="role-pin" inputmode="numeric" autocomplete="off">
+    </div>
+    <p style="font-size:12px;color:var(--text-muted);margin-top:12px;line-height:1.6">
+      강사는 담당 반 학생의 출결·성적·상담만 조회·입력할 수 있고, 수강료·홍보·학생 등록/반 이동/상태 변경·백업은 원장만 할 수 있습니다.
+    </p>
+    <div class="modal-footer">
+      <button class="btn btn-primary" onclick="confirmRole()">시작하기</button>
+    </div>
+  </div>
+</div>
+
+<!-- 설정 모달 (원장) -->
+<div class="modal-overlay" id="settings-modal">
+  <div class="modal">
+    <h3>⚙ 설정</h3>
+    <div class="card-title" style="font-size:13px;margin-bottom:8px">강사 관리</div>
+    <div id="teacher-list" style="margin-bottom:8px"></div>
+    <div class="filter-bar">
+      <input type="text" id="new-teacher-name" placeholder="강사 이름">
+      <button class="btn btn-primary btn-sm" onclick="addTeacher()">+ 강사 추가</button>
+    </div>
+
+    <div class="card-title" style="font-size:13px;margin:16px 0 8px">원장 PIN</div>
+    <p style="font-size:12px;color:var(--text-muted);margin-bottom:8px">PIN을 정하면 이 PC에서 원장 모드로 들어갈 때 PIN을 묻습니다. (같은 PC 안에서 강사와 화면을 나누는 용도이며, 해킹 방지용 보안 장치는 아닙니다.)</p>
+    <div class="filter-bar">
+      <input type="password" id="new-pin" inputmode="numeric" placeholder="새 PIN (숫자 4자리 이상)" autocomplete="off">
+      <button class="btn btn-primary btn-sm" onclick="setDirectorPin()">PIN 저장</button>
+      <button class="btn btn-ghost btn-sm" onclick="clearDirectorPin()">PIN 해제</button>
+    </div>
+    <div id="pin-state" style="font-size:12px;color:var(--text-muted)"></div>
+
+    <div class="card-title" style="font-size:13px;margin:16px 0 8px">샘플(연습용) 자료</div>
+    <p style="font-size:12px;color:var(--text-muted);margin-bottom:8px">샘플 학생은 <span class="badge badge-sample">샘플</span> 표시가 붙고 홈 통계·매출에서 빠집니다. 삭제 버튼은 샘플 표시된 학생과 그 학생의 기록만 지웁니다.</p>
+    <div class="filter-bar">
+      <button class="btn btn-ghost btn-sm" onclick="loadSampleData()">샘플 학생 3명 넣기</button>
+      <button class="btn btn-danger btn-sm" onclick="deleteSampleData()">샘플 자료 모두 삭제</button>
+      <span id="sample-count" style="font-size:12px;color:var(--text-muted)"></span>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost" onclick="closeModal('settings-modal')">닫기</button>
+    </div>
+  </div>
+</div>
+
+<!-- 목요일 백업 알림 팝업 -->
+<div class="modal-overlay" id="backup-reminder-overlay">
+  <div class="modal" style="width:380px;text-align:center">
+    <div style="font-size:48px;margin-bottom:12px">💾</div>
+    <h3 style="font-size:18px;margin-bottom:8px">오늘 백업 하셨나요?</h3>
+    <p style="font-size:13px;color:var(--text-muted);line-height:1.7;margin-bottom:20px">
+      매주 목요일 백업을 권장합니다.<br>
+      학생 데이터를 안전하게 보관하세요.
+    </p>
+    <div style="display:flex;flex-direction:column;gap:8px">
+      <button class="btn btn-primary" style="width:100%;justify-content:center;font-size:14px" onclick="dismissBackupReminder(true)">
+        ⬇ 지금 바로 백업하기
+      </button>
+      <button class="btn btn-ghost" style="width:100%;justify-content:center;font-size:13px" onclick="dismissBackupReminder(false)">
+        오늘은 이미 했어요
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- CSV 가져오기 모달 -->
+<div class="modal-overlay" id="csv-modal">
+  <div class="modal" style="width:520px">
+    <h3>📊 엑셀 CSV 데이터 가져오기</h3>
+    <p style="font-size:13px;color:var(--text-muted);margin-bottom:16px">
+      날짜·출결·숙제·단어시험·unit test·생활영어 점수를 자동으로 변환합니다.
+    </p>
+    <div class="form-grid">
+      <div class="form-group">
+        <label>학생 선택 *</label>
+        <select id="csv-student"></select>
+      </div>
+      <div class="form-group">
+        <label>데이터 연도</label>
+        <select id="csv-year"></select>
+      </div>
+    </div>
+    <div style="margin-top:12px;background:var(--bg);border-radius:8px;padding:12px;font-size:12px;color:var(--text-muted)">
+      <strong style="color:var(--text);display:block;margin-bottom:6px">가져올 내용 미리보기</strong>
+      <div id="csv-preview"></div>
+    </div>
+    <div style="margin-top:12px;font-size:12px;color:var(--orange)">
+      ⚠ 같은 날짜에 이미 기록이 있으면 덮어씁니다.
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost" onclick="closeModal('csv-modal')">취소</button>
+      <button class="btn btn-primary" onclick="confirmCsvImport()">가져오기</button>
+    </div>
+  </div>
+</div>
+
+<!-- 리포트 기간 선택 모달 -->
+<div class="modal-overlay" id="report-modal">
+  <div class="modal" style="width:380px">
+    <h3>📄 학생 리포트 생성</h3>
+    <p style="font-size:13px;color:var(--text-muted);margin-bottom:20px">출결·성적 데이터가 자동으로 채워집니다.<br>원장 코멘트는 미리보기 화면에서 직접 입력하세요.</p>
+    <div class="form-grid">
+      <div class="form-group">
+        <label>시작 월</label>
+        <select id="report-start"></select>
+      </div>
+      <div class="form-group">
+        <label>종료 월</label>
+        <select id="report-end"></select>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost" onclick="closeModal('report-modal')">취소</button>
+      <button class="btn btn-primary" onclick="generateReport()">미리보기 · PDF 저장</button>
+    </div>
+  </div>
+</div>
+
+<!-- 홍보 추가/수정 모달 -->
+<div class="modal-overlay" id="marketing-modal">
+  <div class="modal">
+    <h3 id="marketing-modal-title">콘텐츠 추가</h3>
+    <div class="form-grid">
+      <div class="form-group">
+        <label>채널</label>
+        <select id="m-channel">
+          <option>블로그</option>
+          <option>인스타</option>
+          <option>유튜브</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label>상태</label>
+        <select id="m-status">
+          <option>기획</option>
+          <option>작성중</option>
+          <option>발행</option>
+        </select>
+      </div>
+      <div class="form-group form-full">
+        <label>제목 *</label>
+        <input type="text" id="m-title" placeholder="콘텐츠 제목">
+      </div>
+      <div class="form-group">
+        <label>발행일</label>
+        <input type="date" id="m-date">
+      </div>
+      <div class="form-group">
+        <label>링크</label>
+        <input type="url" id="m-link" placeholder="https://...">
+      </div>
+      <div class="form-group form-full">
+        <label>메모</label>
+        <textarea id="m-memo"></textarea>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost" onclick="closeModal('marketing-modal')">취소</button>
+      <button class="btn btn-primary" onclick="saveMarketing()">저장</button>
+    </div>
+  </div>
+</div>
+
+<script>
+/* === 상수 === */
+const PREFIX = 'ssiny_';
+const CLASS_FEES = {
+  '영어첫단추반': 210000,
+  '뉴욕반': 240000,
+  '버클리반': 250000,
+  '워싱턴반': 260000,
+  '아이비반': 350000,
+  '성인반': 0
+};
+
+const WEEK_DAYS = ['월','화','수','목','금','토'];
+const CLASS_COLORS = { '영어첫단추반':'#92308D','뉴욕반':'#2980b9','버클리반':'#27ae60','워싱턴반':'#e67e22','아이비반':'#e74c3c' };
+const DIRECTOR_ID = 't-director';
+// 2026학년도 실제 시간표 — 'classes' 저장소가 비어 있을 때 한 번만 채워 넣는다
+const DEFAULT_SESSIONS = [
+  { name: '영어첫단추반', days: ['월','화','목'], start: '14:10', end: '15:10' },
+  { name: '뉴욕반',       days: ['월','화','목'], start: '15:20', end: '16:20' },
+  { name: '버클리반',     days: ['수'],            start: '15:10', end: '16:10' },
+  { name: '버클리반',     days: ['화','목'],       start: '16:30', end: '17:30' },
+  { name: '워싱턴반',     days: ['화','목'],       start: '17:35', end: '18:55' },
+  { name: '아이비반',     days: ['월','수'],       start: '16:30', end: '18:30' },
+];
+// 백업·복원 대상 (설정·PIN은 제외)
+const DATA_KEYS = ['students','attendance','grades','consultations','payments','marketing','classes','teachers','history'];
+
+/* === 스토리지 헬퍼 === */
+function getAll(key) {
+  try { return JSON.parse(localStorage.getItem(PREFIX + key)) || []; } catch { return []; }
+}
+// 저장 후 다시 읽어 실제로 기록됐는지 확인한다. 실패하면 false.
+function saveAll(key, arr) {
+  const json = JSON.stringify(arr);
+  try {
+    localStorage.setItem(PREFIX + key, json);
+    if (localStorage.getItem(PREFIX + key) !== json) throw new Error('verify failed');
+    return true;
+  } catch (e) {
+    alert('⚠ 저장에 실패했습니다. 변경 내용이 기록되지 않았습니다.\n브라우저 저장 공간을 확인하고, 먼저 데이터 백업을 해 주세요.');
+    return false;
+  }
+}
+function uid() { return Date.now().toString(36) + Math.random().toString(36).slice(2); }
+function getById(key, id) { return getAll(key).find(x => x.id === id); }
+function upsert(key, item) {
+  const arr = getAll(key);
+  const idx = arr.findIndex(x => x.id === item.id);
+  if (idx >= 0) arr[idx] = item; else arr.push(item);
+  return saveAll(key, arr);
+}
+function remove(key, id) {
+  if (!confirm('삭제하시겠습니까? 이 작업은 되돌릴 수 없습니다.')) return false;
+  return saveAll(key, getAll(key).filter(x => x.id !== id));
+}
+function esc(v) {
+  return String(v == null ? '' : v).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;');
+}
+
+/* === 수업(세션)·강사 데이터 === */
+function ensureSeedData() {
+  if (!getAll('teachers').some(t => t.id === DIRECTOR_ID)) {
+    saveAll('teachers', [{ id: DIRECTOR_ID, name: '원장', role: '원장', active: true }, ...getAll('teachers')]);
+  }
+  if (localStorage.getItem(PREFIX + 'classes') === null) {
+    saveAll('classes', DEFAULT_SESSIONS.map(s => ({ id: uid(), ...s, teacherId: DIRECTOR_ID, room: '' })));
+  }
+}
+function getSessions() { return getAll('classes'); }
+function teacherName(id) { const t = getById('teachers', id); return t ? t.name : '미지정'; }
+function classNames() {
+  const names = getSessions().map(s => s.name);
+  Object.keys(CLASS_FEES).forEach(n => names.push(n));
+  getAll('students').forEach(s => { if (s.className) names.push(s.className); });
+  return [...new Set(names)];
+}
+function studentClasses(s) { return [s.className, ...(s.extraClasses || [])].filter(Boolean); }
+function inClass(s, name) { return studentClasses(s).includes(name); }
+function sessionsOn(day) {
+  return getSessions().filter(t => t.days.includes(day) && inRoleSession(t))
+    .sort((a, b) => a.start.localeCompare(b.start));
+}
+function startTimeFor(className, day) {
+  const s = getSessions().find(t => t.name === className && t.days.includes(day));
+  return s ? s.start : '';
+}
+function fillClassSelects() {
+  const names = classNames();
+  document.querySelectorAll('select[data-class-select]').forEach(sel => {
+    const keep = sel.value;
+    const first = sel.options[0] ? sel.options[0].outerHTML : '';
+    sel.innerHTML = first + names.map(n => `<option>${esc(n)}</option>`).join('');
+    sel.value = names.includes(keep) ? keep : '';
+  });
+}
+
+/* === 시간 중복 검사 === */
+function overlaps(a, b) {
+  return a.days.some(d => b.days.includes(d)) && a.start < b.end && b.start < a.end;
+}
+function sharedDays(a, b) { return a.days.filter(d => b.days.includes(d)).join('·'); }
+function sessionLabel(s) { return `${s.name} ${s.days.join('·')} ${s.start}~${s.end}`; }
+
+// sessions: 검사할 수업 목록, students: 검사할 학생 목록
+function findConflicts(sessions, students) {
+  const list = [];
+  for (let i = 0; i < sessions.length; i++) {
+    for (let j = i + 1; j < sessions.length; j++) {
+      const a = sessions[i], b = sessions[j];
+      if (!overlaps(a, b)) continue;
+      if (a.teacherId && a.teacherId === b.teacherId) {
+        list.push({ kind: '강사', who: teacherName(a.teacherId), detail: `${sessionLabel(a)} ↔ ${sessionLabel(b)} (${sharedDays(a, b)})` });
+      }
+      if (a.room && a.room.trim() && a.room.trim() === (b.room || '').trim()) {
+        list.push({ kind: '교실', who: a.room.trim(), detail: `${sessionLabel(a)} ↔ ${sessionLabel(b)} (${sharedDays(a, b)})` });
+      }
+    }
+  }
+  students.filter(s => s.status !== '퇴원').forEach(st => {
+    const mine = sessions.filter(se => inClass(st, se.name));
+    for (let i = 0; i < mine.length; i++) {
+      for (let j = i + 1; j < mine.length; j++) {
+        if (mine[i].name !== mine[j].name && overlaps(mine[i], mine[j])) {
+          list.push({ kind: '학생', who: st.name, detail: `${sessionLabel(mine[i])} ↔ ${sessionLabel(mine[j])} (${sharedDays(mine[i], mine[j])})` });
+        }
+      }
+    }
+  });
+  return list;
+}
+// 한 학생 본인의 수업 시간 중복만
+function studentConflicts(student) {
+  return findConflicts(getSessions().filter(se => inClass(student, se.name)), [student]).filter(c => c.kind === '학생');
+}
+function conflictHtml(list, emptyText) {
+  if (!list.length) return emptyText ? `<p style="color:var(--green);font-size:13px">${emptyText}</p>` : '';
+  const color = { '학생': 'badge-red', '강사': 'badge-orange', '교실': 'badge-blue' };
+  return list.map(c => `<div class="conflict-item">
+      <span class="badge ${color[c.kind]}">${c.kind}</span>
+      <div><strong>${esc(c.who)}</strong><div style="font-size:12px;color:var(--text-muted)">${esc(c.detail)}</div></div>
+    </div>`).join('');
+}
+
+/* === 반·상태 이력 === */
+function addHistory(entry) {
+  return upsert('history', { id: uid(), at: new Date().toISOString(), by: currentUserName(), ...entry });
+}
+function historyOf(studentId) {
+  return getAll('history').filter(h => h.studentId === studentId)
+    .sort((a, b) => (a.date + a.at).localeCompare(b.date + b.at));
+}
+// 등록일·상태 변경 이력으로 재원/휴원/퇴원 구간을 계산한다 (추정 없이 기록만 사용)
+function enrollmentPeriods(s) {
+  const changes = historyOf(s.id).filter(h => h.kind === '상태 변경');
+  const periods = [];
+  let curStatus = changes.length ? changes[0].from : s.status;
+  let curFrom = s.enrollDate || (changes[0] && changes[0].date) || '';
+  changes.forEach(h => {
+    periods.push({ status: curStatus || '재원', from: curFrom, to: h.date });
+    curStatus = h.to; curFrom = h.date;
+  });
+  periods.push({ status: curStatus || s.status, from: curFrom, to: null });
+  return periods;
+}
+function monthsBetween(from, to) {
+  if (!from) return 0;
+  const a = new Date(from + 'T00:00:00'), b = to ? new Date(to + 'T00:00:00') : new Date();
+  return Math.max(0, (b - a) / (1000 * 60 * 60 * 24 * 30.44));
+}
+function periodText(p) {
+  if (p.status === '퇴원') return `퇴원 ${fmtDate(p.from)}`;
+  return `${p.status} ${fmtDate(p.from)} ~ ${p.to ? fmtDate(p.to) : '현재'}`;
+}
+
+/* === 역할(원장/강사) === */
+function getSession() {
+  try { return JSON.parse(sessionStorage.getItem(PREFIX + 'role')) || null; } catch { return null; }
+}
+function setSession(v) { sessionStorage.setItem(PREFIX + 'role', JSON.stringify(v)); }
+function isDirector() { const s = getSession(); return !s || s.role === 'director'; }
+function currentTeacherId() { const s = getSession(); return s && s.role === 'teacher' ? s.teacherId : null; }
+function currentUserName() { return isDirector() ? '원장' : teacherName(currentTeacherId()); }
+function requireDirector() {
+  if (isDirector()) return true;
+  alert('원장만 할 수 있는 작업입니다.');
+  return false;
+}
+// 강사는 담당 수업만, 원장은 전체
+function inRoleSession(session) { return isDirector() || session.teacherId === currentTeacherId(); }
+function myClassNames() {
+  return [...new Set(getSessions().filter(inRoleSession).map(s => s.name))];
+}
+function scopedStudents() {
+  const all = getAll('students');
+  if (isDirector()) return all;
+  const mine = myClassNames();
+  return all.filter(s => studentClasses(s).some(c => mine.includes(c)));
+}
+function canSeeStudent(id) { return scopedStudents().some(s => s.id === id); }
+function isSampleStudent(id) { const s = getById('students', id); return !!(s && s.isSample); }
+function sampleBadge(s) { return s && s.isSample ? ' <span class="badge badge-sample">샘플</span>' : ''; }
+
+function getDirectorPinHash() { return localStorage.getItem(PREFIX + 'directorPin') || ''; }
+async function hashPin(pin) {
+  const text = 'ssiny-pin:' + pin;
+  if (window.crypto && crypto.subtle) {
+    const buf = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(text));
+    return [...new Uint8Array(buf)].map(b => b.toString(16).padStart(2, '0')).join('');
+  }
+  let h = 5381; for (const ch of text) h = ((h << 5) + h + ch.charCodeAt(0)) | 0;
+  return 'f' + (h >>> 0).toString(16);
+}
+function openRoleModal() {
+  const teachers = getAll('teachers').filter(t => t.id !== DIRECTOR_ID && t.active !== false);
+  const sel = document.getElementById('role-select');
+  sel.innerHTML = `<option value="director">원장</option>` +
+    teachers.map(t => `<option value="${t.id}">${esc(t.name)} (강사)</option>`).join('');
+  const s = getSession();
+  sel.value = s && s.role === 'teacher' ? s.teacherId : 'director';
+  document.getElementById('role-pin').value = '';
+  document.getElementById('role-pin-wrap').style.display = sel.value === 'director' && getDirectorPinHash() ? '' : 'none';
+  openModal('role-modal');
+}
+async function confirmRole() {
+  const val = document.getElementById('role-select').value;
+  if (val === 'director') {
+    const saved = getDirectorPinHash();
+    if (saved && await hashPin(document.getElementById('role-pin').value) !== saved) {
+      alert('PIN이 맞지 않습니다.'); return;
+    }
+    setSession({ role: 'director' });
+  } else {
+    setSession({ role: 'teacher', teacherId: val });
+  }
+  document.getElementById('role-modal').classList.remove('open');
+  applyRoleUI();
+  showPage('dashboard');
+}
+function applyRoleUI() {
+  const director = isDirector();
+  document.querySelectorAll('.director-only').forEach(el => { el.style.display = director ? '' : 'none'; });
+  document.getElementById('role-name').textContent = currentUserName() + (director ? '' : ' 선생님');
+  document.getElementById('role-sub').textContent = director ? '전체 조회·수정' : `담당 반: ${myClassNames().join(', ') || '없음'}`;
+}
+const DIRECTOR_PAGES = ['retention', 'marketing', 'payments'];
+
+/* === 설정: 강사·PIN·샘플 === */
+function openSettingsModal() {
+  if (!requireDirector()) return;
+  renderSettings();
+  openModal('settings-modal');
+}
+function renderSettings() {
+  const teachers = getAll('teachers');
+  const sessions = getSessions();
+  document.getElementById('teacher-list').innerHTML = teachers.map(t => {
+    const count = sessions.filter(s => s.teacherId === t.id).length;
+    return `<div style="display:flex;justify-content:space-between;align-items:center;padding:6px 0;border-bottom:1px solid var(--border)">
+      <span><strong>${esc(t.name)}</strong> <span class="badge ${t.id === DIRECTOR_ID ? 'badge-purple' : 'badge-gray'}">${t.id === DIRECTOR_ID ? '원장' : '강사'}</span>
+        ${t.active === false ? '<span class="badge badge-gray">비활성</span>' : ''}
+        <span style="font-size:12px;color:var(--text-muted)">담당 수업 ${count}개</span></span>
+      ${t.id === DIRECTOR_ID ? '' : `<button class="btn btn-sm btn-ghost" onclick="toggleTeacherActive('${t.id}')">${t.active === false ? '다시 활성화' : '비활성화'}</button>`}
+    </div>`;
+  }).join('');
+  document.getElementById('pin-state').textContent = getDirectorPinHash() ? '현재: PIN 설정됨' : '현재: PIN 없음 (누구나 원장 모드)';
+  const sampleStudents = getAll('students').filter(s => s.isSample).length;
+  document.getElementById('sample-count').textContent = `현재 샘플 학생 ${sampleStudents}명`;
+}
+function addTeacher() {
+  if (!requireDirector()) return;
+  const name = document.getElementById('new-teacher-name').value.trim();
+  if (!name) { alert('강사 이름을 입력하세요.'); return; }
+  if (upsert('teachers', { id: uid(), name, role: '강사', active: true })) {
+    document.getElementById('new-teacher-name').value = '';
+    renderSettings();
+  }
+}
+function toggleTeacherActive(id) {
+  if (!requireDirector()) return;
+  const arr = getAll('teachers');
+  const t = arr.find(x => x.id === id);
+  if (!t) return;
+  t.active = t.active === false;
+  if (saveAll('teachers', arr)) renderSettings();
+}
+async function setDirectorPin() {
+  if (!requireDirector()) return;
+  const pin = document.getElementById('new-pin').value.trim();
+  if (!/^\d{4,}$/.test(pin)) { alert('숫자 4자리 이상으로 입력하세요.'); return; }
+  localStorage.setItem(PREFIX + 'directorPin', await hashPin(pin));
+  document.getElementById('new-pin').value = '';
+  renderSettings();
+  alert('PIN이 저장됐습니다. 다음에 대시보드를 열 때 사용자 선택 화면이 나옵니다.');
+}
+function clearDirectorPin() {
+  if (!requireDirector()) return;
+  if (!confirm('원장 PIN을 해제할까요?')) return;
+  localStorage.removeItem(PREFIX + 'directorPin');
+  renderSettings();
+}
+function loadSampleData() {
+  if (!requireDirector()) return;
+  if (getAll('students').some(s => s.isSample)) { alert('이미 샘플 학생이 있습니다. 먼저 샘플 자료를 삭제하세요.'); return; }
+  const d = today();
+  const samples = [
+    { name: '샘플 하늘', className: '뉴욕반', grade: '3학년', school: '샘플초' },
+    { name: '샘플 바다', className: '버클리반', grade: '4학년', school: '샘플초' },
+    { name: '샘플 별님', className: '아이비반', grade: '중1', school: '샘플중' },
+  ].map(x => ({ id: uid(), ...x, isSample: true, status: '재원', program: '키즈/주니어', enrollDate: d,
+      tuitionFee: CLASS_FEES[x.className] || 0, tuitionCycle: '월납', parentName: '', parentPhone: '', parentKakao: '', memo: '연습용 샘플 학생', extraClasses: [] }));
+  const ok = saveAll('students', [...getAll('students'), ...samples]);
+  if (ok) {
+    samples.forEach(s => addHistory({ studentId: s.id, kind: '신규 등록', date: d, from: '', to: s.className, reason: '샘플 자료' }));
+    renderSettings(); fillClassSelects(); renderCurrentPage();
+    alert('샘플 학생 3명을 넣었습니다. 목록에서 "샘플" 표시로 구분됩니다.');
+  }
+}
+function deleteSampleData() {
+  if (!requireDirector()) return;
+  const ids = getAll('students').filter(s => s.isSample).map(s => s.id);
+  if (!ids.length) { alert('삭제할 샘플 자료가 없습니다.'); return; }
+  if (!confirm(`샘플 학생 ${ids.length}명과 그 학생들의 출결·성적·상담·수납·이력 기록만 삭제합니다. 실제 원생 자료는 건드리지 않습니다. 진행할까요?`)) return;
+  let ok = saveAll('students', getAll('students').filter(s => !s.isSample));
+  ['attendance','grades','consultations','payments','history'].forEach(k => {
+    ok = saveAll(k, getAll(k).filter(r => !ids.includes(r.studentId))) && ok;
+  });
+  renderSettings(); fillClassSelects(); renderCurrentPage();
+  alert(ok ? '샘플 자료를 삭제했습니다.' : '일부 삭제가 저장되지 않았습니다. 다시 시도하세요.');
+}
+
+/* === 백업/복원 === */
+async function exportData() {
+  if (!requireDirector()) return;
+  const data = {};
+  DATA_KEYS.forEach(k => {
+    data[k] = getAll(k);
+  });
+  data._exported = new Date().toISOString();
+  const json = JSON.stringify(data, null, 2);
+  const fileName = `ssiny-backup-${today()}.json`;
+
+  // File System Access API — 폴더 직접 선택 가능 (크롬, 보안 컨텍스트 필요)
+  if (window.showSaveFilePicker) {
+    try {
+      const handle = await window.showSaveFilePicker({
+        suggestedName: fileName,
+        types: [{ description: '백업 파일', accept: { 'application/json': ['.json'] } }],
+      });
+      const writable = await handle.createWritable();
+      await writable.write(json);
+      await writable.close();
+      localStorage.setItem(PREFIX + 'lastBackup', new Date().toISOString());
+      document.getElementById('backup-alert').style.display = 'none';
+      alert(`✅ 백업 완료!\n\n저장 위치: 선택한 폴더\n파일명: ${fileName}`);
+      return;
+    } catch (err) {
+      if (err.name === 'AbortError') return; // 사용자가 취소
+      // SecurityError 등 — 파일 선택창 지원 안 되는 환경, 폴백 실행
+    }
+  }
+
+  // 폴백: 다운로드 폴더로 저장
+  const blob = new Blob([json], { type: 'application/json' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = fileName;
+  a.click();
+  URL.revokeObjectURL(url);
+  localStorage.setItem(PREFIX + 'lastBackup', new Date().toISOString());
+  document.getElementById('backup-alert').style.display = 'none';
+
+  // 구글 드라이브 이동 안내
+  alert(`✅ 백업 파일이 다운로드 폴더에 저장됐습니다.\n\n📁 파일명: ${fileName}\n\n📌 구글 드라이브에 보관하려면:\n1. 다운로드 폴더에서 이 파일을 찾으세요\n2. 구글 드라이브 폴더로 이동 또는 복사하세요\n\n💡 팁: 크롬에서 구글 드라이브 사이트(drive.google.com)에 직접 파일을 드래그하면 업로드됩니다.`);
+}
+
+function importData(e) {
+  const file = e.target.files[0];
+  if (!file) return;
+  if (!requireDirector()) { e.target.value = ''; return; }
+  if (!confirm('현재 데이터를 덮어쓰고 복원하시겠습니까?')) { e.target.value = ''; return; }
+  const reader = new FileReader();
+  reader.onload = ev => {
+    let data;
+    try { data = JSON.parse(ev.target.result); } catch { alert('파일 형식이 올바르지 않습니다.'); return; }
+    let ok = true;
+    // 예전 백업에 없는 항목(반 편성·강사·이력)은 현재 값을 유지한다
+    DATA_KEYS.forEach(k => { if (Array.isArray(data[k])) ok = saveAll(k, data[k]) && ok; });
+    ensureSeedData();
+    fillClassSelects();
+    applyRoleUI();
+    renderCurrentPage();
+    alert(ok ? '복원 완료!' : '⚠ 일부 항목이 저장되지 않았습니다. 다시 시도하세요.');
+  };
+  reader.readAsText(file);
+  e.target.value = '';
+}
+
+function checkBackupAlert() {
+  const last = localStorage.getItem(PREFIX + 'lastBackup');
+  if (!last) { document.getElementById('backup-alert').style.display = 'flex'; return; }
+  const days = (Date.now() - new Date(last)) / (1000 * 60 * 60 * 24);
+  document.getElementById('backup-alert').style.display = days >= 7 ? 'flex' : 'none';
+}
+
+function checkThursdayBackupReminder() {
+  const now = new Date();
+  const isThursday = now.getDay() === 4;
+  const hour = now.getHours();
+  const min = now.getMinutes();
+  const isAfter530 = hour > 17 || (hour === 17 && min >= 30);
+  if (!isThursday || !isAfter530) return;
+
+  // 오늘 이미 닫았으면 다시 안 띄움
+  const dismissed = localStorage.getItem(PREFIX + 'backupReminderDismissed');
+  if (dismissed === today()) return;
+
+  // 오늘 이미 백업했으면 안 띄움
+  const last = localStorage.getItem(PREFIX + 'lastBackup');
+  if (last && new Date(last).toDateString() === now.toDateString()) return;
+
+  document.getElementById('backup-reminder-overlay').classList.add('open');
+}
+
+function dismissBackupReminder(doBackup) {
+  localStorage.setItem(PREFIX + 'backupReminderDismissed', today());
+  document.getElementById('backup-reminder-overlay').classList.remove('open');
+  if (doBackup) exportData();
+}
+
+/* === 날짜 유틸 === */
+// 로컬(한국) 날짜 기준 — toISOString()은 UTC라 오전 9시 전에 하루 전 날짜가 된다
+function ymd(d) { return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`; }
+function today() { return ymd(new Date()); }
+function thisMonth() { return today().slice(0, 7); }
+function fmtDate(d) { return d ? d.replace(/-/g, '.') : '—'; }
+function fmtMoney(n) { return n ? '₩' + Number(n).toLocaleString() : '—'; }
+function getDayKo(dateStr) {
+  const d = new Date(dateStr + 'T00:00:00');
+  return ['일','월','화','수','목','금','토'][d.getDay()];
+}
+
+/* === 네비게이션 === */
+let currentPage = 'dashboard';
+
+function showPage(page) {
+  if (!isDirector() && DIRECTOR_PAGES.includes(page)) page = 'dashboard';
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('#sidebar nav a').forEach(a => a.classList.remove('active'));
+  document.getElementById('page-' + page).classList.add('active');
+  document.getElementById('nav-' + page).classList.add('active');
+  currentPage = page;
+
+  const titles = {
+    dashboard: '대시보드 홈', students: '원생 현황판', attendance: '출결·수업',
+    grades: '성적·진도', consultations: '상담 기록', retention: '재등록·이탈', marketing: '홍보 관리',
+    payments: '수강료·매출', daily: '데일리 알림장', timetable: '반 편성·시간표'
+  };
+  document.getElementById('page-title').textContent = titles[page] || '';
+  renderCurrentPage();
+}
+
+function renderCurrentPage() {
+  if (currentPage === 'dashboard') renderDashboard();
+  else if (currentPage === 'students') renderStudentList();
+  else if (currentPage === 'attendance') renderAttendancePage();
+  else if (currentPage === 'payments') renderPaymentsPage();
+  else if (currentPage === 'consultations') renderConsultationsPage();
+  else if (currentPage === 'retention') renderRetentionPage();
+  else if (currentPage === 'grades') renderGradesPage();
+  else if (currentPage === 'marketing') renderMarketingPage();
+  else if (currentPage === 'daily') renderDailyPage();
+  else if (currentPage === 'timetable') renderTimetable();
+}
+
+/* === 모달 헬퍼 === */
+let editingId = {};
+
+// 나중에 연 모달이 항상 위에 오도록 (예: 재등록 이력 위에서 상태 변경)
+let modalZ = 200;
+function openModal(id) {
+  const el = document.getElementById(id);
+  el.style.zIndex = ++modalZ;
+  el.classList.add('open');
+}
+function closeModal(id) { document.getElementById(id).classList.remove('open'); editingId[id] = null; }
+
+document.querySelectorAll('.modal-overlay').forEach(m => {
+  m.addEventListener('click', e => { if (e.target === m) closeModal(m.id); });
+});
+
+/* === 대시보드 홈 === */
+function renderDashboard() {
+  // 통계는 실제 원생만 (샘플 제외)
+  const students = scopedStudents().filter(s => !s.isSample);
+  const realIds = new Set(students.map(s => s.id));
+  const payments = getAll('payments').filter(p => realIds.has(p.studentId));
+  const consults = getAll('consultations').filter(c => realIds.has(c.studentId));
+  const now = thisMonth();
+  const sampleCount = scopedStudents().filter(s => s.isSample).length;
+
+  const active = students.filter(s => s.status === '재원').length;
+  const onLeave = students.filter(s => s.status === '휴원').length;
+  const unpaid = payments.filter(p => p.status === '미납').length;
+  const followup = consults.filter(c => !c.done && c.followUp).length;
+  const monthRevenue = payments.filter(p => p.status === '완납' && p.paidDate && p.paidDate.startsWith(now))
+    .reduce((s, p) => s + Number(p.amount || 0), 0);
+  const conflicts = findConflicts(getSessions().filter(inRoleSession), students).length;
+
+  document.getElementById('home-stats').innerHTML = `
+    <div class="stat-card"><div class="val">${active}</div><div class="label">재원 학생${onLeave ? ` · 휴원 ${onLeave}` : ''}</div></div>
+    ${isDirector()
+      ? `<div class="stat-card"><div class="val" style="color:var(--red)">${unpaid}</div><div class="label">미납 건수</div></div>`
+      : `<div class="stat-card"><div class="val">${myClassNames().length}</div><div class="label">담당 반</div></div>`}
+    <div class="stat-card"><div class="val" style="color:var(--orange)">${followup}</div><div class="label">팔로업 필요</div></div>
+    ${isDirector()
+      ? `<div class="stat-card"><div class="val" style="font-size:20px">₩${(monthRevenue/10000).toFixed(0)}만</div><div class="label">이번달 매출</div></div>`
+      : `<div class="stat-card" style="cursor:pointer" onclick="showPage('timetable')"><div class="val" style="color:${conflicts ? 'var(--red)' : 'var(--green)'}">${conflicts}</div><div class="label">시간 중복</div></div>`}
+  `;
+
+  const todayClasses = sessionsOn(getDayKo(today()));
+  document.getElementById('today-classes').innerHTML = (todayClasses.length
+    ? todayClasses.map(t => {
+        const color = CLASS_COLORS[t.name] || '#6B1F68';
+        return `
+        <div style="display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:1px solid var(--border);flex-wrap:wrap">
+          <span class="badge badge-purple" style="background:${color}20;color:${color}">${esc(t.name)}</span>
+          <span style="font-size:13px;color:var(--text-muted)">${t.start}~${t.end} · ${esc(teacherName(t.teacherId))}${t.room ? ' · ' + esc(t.room) : ''}</span>
+          <button class="btn btn-sm btn-ghost" style="margin-left:auto" onclick="openAttendanceFor('${esc(t.name)}')">출결 체크</button>
+        </div>`;
+      }).join('')
+    : '<p class="text-muted" style="padding:8px 0">오늘 수업 없음</p>')
+    + (sampleCount ? `<p style="font-size:11px;color:var(--text-muted);margin-top:8px">※ 통계에서 샘플 학생 ${sampleCount}명은 제외했습니다.</p>` : '')
+    + (isDirector() && conflicts ? `<p style="font-size:12px;color:var(--red);margin-top:8px;cursor:pointer" onclick="showPage('timetable')">⚠ 시간 중복 ${conflicts}건 — 반 편성·시간표에서 확인하세요</p>` : '');
+
+  const unpaidList = payments.filter(p => p.status === '미납').slice(0, 5);
+  document.getElementById('unpaid-list').innerHTML = unpaidList.length
+    ? unpaidList.map(p => {
+        const s = getById('students', p.studentId);
+        return `<div style="display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px solid var(--border)">
+          <span>${s ? s.name : '—'}</span>
+          <span style="color:var(--red);font-weight:600">${fmtMoney(p.amount)}</span>
+        </div>`;
+      }).join('')
+    : '<p class="text-muted" style="padding:8px 0">미납 없음 ✓</p>';
+
+  const followupList = consults.filter(c => !c.done && c.followUp).slice(0, 5);
+  document.getElementById('followup-list').innerHTML = followupList.length
+    ? followupList.map(c => {
+        const s = getById('students', c.studentId);
+        return `<div style="padding:6px 0;border-bottom:1px solid var(--border)">
+          <span style="font-weight:600">${s ? s.name : '—'}</span>
+          <span style="color:var(--text-muted);margin-left:8px;font-size:12px">${c.followUp}</span>
+        </div>`;
+      }).join('')
+    : '<p class="text-muted" style="padding:8px 0">팔로업 없음 ✓</p>';
+
+  const last3Months = Array.from({length:3},(_,i)=>{
+    const d=new Date(); d.setDate(1); d.setMonth(d.getMonth()-i);
+    return ymd(d).slice(0,7);
+  }).reverse();
+
+  document.getElementById('monthly-revenue').innerHTML = last3Months.map(m => {
+    const rev = payments.filter(p => p.status==='완납' && p.paidDate && p.paidDate.startsWith(m))
+      .reduce((s,p)=>s+Number(p.amount||0),0);
+    const maxRev = 5000000;
+    const pct = Math.min((rev/maxRev)*100, 100);
+    return `<div style="margin-bottom:10px">
+      <div style="display:flex;justify-content:space-between;font-size:12px;margin-bottom:4px">
+        <span>${m}</span><span style="font-weight:700">${fmtMoney(rev)}</span>
+      </div>
+      <div style="background:var(--border);border-radius:4px;height:8px">
+        <div style="background:var(--primary);height:8px;border-radius:4px;width:${pct}%"></div>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+/* === 학생 관리 === */
+function renderStudentList() {
+  document.getElementById('students-list-view').style.display = '';
+  document.getElementById('student-detail').style.display = 'none';
+
+  const search = document.getElementById('student-search').value.toLowerCase();
+  const classFlt = document.getElementById('student-class-filter').value;
+  const statusFlt = document.getElementById('student-status-filter').value;
+  const sampleFlt = document.getElementById('student-sample-filter').value;
+  const all = scopedStudents();
+
+  // 학년 필터 옵션은 실제 입력된 학년 값으로 채운다
+  const gradeSel = document.getElementById('student-grade-filter');
+  const gradeKeep = gradeSel.value;
+  const grades = [...new Set(all.map(s => (s.grade || '').trim()).filter(Boolean))].sort();
+  gradeSel.innerHTML = '<option value="">전체 학년</option>' + grades.map(g => `<option>${esc(g)}</option>`).join('');
+  gradeSel.value = grades.includes(gradeKeep) ? gradeKeep : '';
+  const gradeFlt = gradeSel.value;
+
+  const students = all.filter(s => {
+    if (search && !`${s.name}${s.school}${s.parentName}`.toLowerCase().includes(search)) return false;
+    if (classFlt && !inClass(s, classFlt)) return false;
+    if (gradeFlt && (s.grade || '').trim() !== gradeFlt) return false;
+    if (statusFlt && s.status !== statusFlt) return false;
+    if (sampleFlt === 'real' && s.isSample) return false;
+    if (sampleFlt === 'sample' && !s.isSample) return false;
+    return true;
+  }).sort((a, b) => ['재원','휴원','퇴원'].indexOf(a.status) - ['재원','휴원','퇴원'].indexOf(b.status) || a.name.localeCompare(b.name));
+
+  const count = st => students.filter(s => s.status === st).length;
+  document.getElementById('student-summary').innerHTML = `
+    <div><div class="ms-val">${students.length}</div><div class="ms-label">검색 결과</div></div>
+    <div><div class="ms-val" style="color:var(--green)">${count('재원')}</div><div class="ms-label">재원</div></div>
+    <div><div class="ms-val" style="color:var(--orange)">${count('휴원')}</div><div class="ms-label">휴원</div></div>
+    <div><div class="ms-val" style="color:var(--red)">${count('퇴원')}</div><div class="ms-label">퇴원</div></div>
+    <div><div class="ms-val" style="color:#4a2c7a">${students.filter(s => s.isSample).length}</div><div class="ms-label">샘플(통계 제외)</div></div>`;
+
+  const director = isDirector();
+  const tbody = document.getElementById('student-tbody');
+  tbody.innerHTML = students.length
+    ? students.map(s => `
+        <tr class="${s.isSample ? 'sample-row' : ''}">
+          <td><a href="#" onclick="openStudentDetail('${s.id}');return false" style="color:var(--primary);font-weight:700;text-decoration:none">${esc(s.name)}</a>${sampleBadge(s)}</td>
+          <td>${classBadge(s.className)}${(s.extraClasses || []).map(c => ` <span class="badge badge-gray">＋${esc(c)}</span>`).join('')}</td>
+          <td>${esc(s.school)||'—'} ${esc(s.grade)}</td>
+          <td>${statusBadge(s.status)}</td>
+          ${director ? `<td>${fmtMoney(s.tuitionFee)}</td>` : ''}
+          <td>${esc(s.parentName)||'—'} ${s.parentPhone ? `<br><span style="font-size:11px;color:var(--text-muted)">${esc(s.parentPhone)}</span>` : ''}</td>
+          <td style="font-size:12px;color:var(--text-muted)">${fmtDate(s.enrollDate)}</td>
+          <td style="white-space:nowrap">
+            <button class="btn btn-sm btn-ghost" onclick="openStudentDetail('${s.id}')">상세</button>
+            ${director ? `<button class="btn btn-sm btn-ghost" style="margin-left:4px" onclick="openStudentModal('${s.id}')">수정</button>
+            <button class="btn btn-sm btn-danger" style="margin-left:4px" onclick="deleteStudent('${s.id}')">삭제</button>` : ''}
+          </td>
+        </tr>`).join('')
+    : `<tr><td colspan="${director ? 8 : 7}" style="text-align:center;color:var(--text-muted);padding:24px">학생 없음</td></tr>`;
+}
+
+function classBadge(c) {
+  const map = { '영어첫단추반':'badge-purple','뉴욕반':'badge-blue','버클리반':'badge-green','워싱턴반':'badge-orange','아이비반':'badge-red','성인반':'badge-gray' };
+  return c ? `<span class="badge ${map[c]||'badge-gray'}">${esc(c)}</span>` : '—';
+}
+function statusBadge(s) {
+  const map = { '재원':'badge-green','휴원':'badge-orange','퇴원':'badge-red' };
+  return s ? `<span class="badge ${map[s]||'badge-gray'}">${s}</span>` : '—';
+}
+
+function openStudentModal(id) {
+  if (!requireDirector()) return;
+  editingId['student-modal'] = id || null;
+  document.getElementById('student-modal-title').textContent = id ? '학생 정보 수정' : '학생 등록';
+  const s = id ? getById('students', id) : {};
+  fillClassSelects();
+  document.getElementById('s-name').value = s.name || '';
+  document.getElementById('s-school').value = s.school || '';
+  document.getElementById('s-grade').value = s.grade || '';
+  document.getElementById('s-phone').value = s.parentPhone || '';
+  document.getElementById('s-kakao').value = s.parentKakao || '';
+  document.getElementById('s-memo').value = s.memo || '';
+  document.getElementById('s-enroll').value = s.enrollDate || today();
+  document.getElementById('s-parent').value = s.parentName || '';
+  document.getElementById('s-class').value = s.className || '';
+  document.getElementById('s-program').value = s.program || '키즈/주니어';
+  document.getElementById('s-status').value = s.status || '재원';
+  document.getElementById('s-tuition').value = s.tuitionFee || '';
+  document.getElementById('s-cycle').value = s.tuitionCycle || '월납';
+  document.getElementById('s-sample').checked = !!s.isSample;
+  // 기존 학생의 반·상태는 이력이 남는 전용 버튼으로만 변경
+  document.getElementById('s-class').disabled = !!id;
+  document.getElementById('s-status').disabled = !!id;
+  document.getElementById('s-edit-hint').style.display = id ? '' : 'none';
+  renderExtraClassChecks(s.extraClasses || []);
+  openModal('student-modal');
+}
+
+function renderExtraClassChecks(selected) {
+  document.getElementById('s-extra').innerHTML = getSessionsNames().map(n =>
+    `<label><input type="checkbox" value="${esc(n)}" ${selected.includes(n) ? 'checked' : ''}> ${esc(n)}</label>`).join('')
+    || '<span class="text-muted">등록된 수업이 없습니다.</span>';
+}
+function getSessionsNames() { return [...new Set(getSessions().map(s => s.name))]; }
+
+function autoFillTuition() {
+  const c = document.getElementById('s-class').value;
+  if (CLASS_FEES[c] !== undefined) document.getElementById('s-tuition').value = CLASS_FEES[c];
+}
+
+function saveStudent() {
+  if (!requireDirector()) return;
+  const name = document.getElementById('s-name').value.trim();
+  if (!name) { alert('이름을 입력하세요.'); return; }
+  const editId = editingId['student-modal'];
+  const prev = editId ? getById('students', editId) : null;
+  const className = prev ? prev.className : document.getElementById('s-class').value;
+  if (!className) { alert('반을 선택하세요.'); return; }
+  const extraClasses = [...document.querySelectorAll('#s-extra input:checked')].map(i => i.value).filter(c => c !== className);
+  const student = {
+    ...(prev || {}),   // 재등록 확인 등 다른 화면에서 저장한 값 보존
+    id: editId || uid(), name,
+    school: document.getElementById('s-school').value,
+    grade: document.getElementById('s-grade').value,
+    className,
+    extraClasses,
+    program: document.getElementById('s-program').value,
+    parentName: document.getElementById('s-parent').value,
+    parentPhone: document.getElementById('s-phone').value,
+    parentKakao: document.getElementById('s-kakao').value,
+    enrollDate: document.getElementById('s-enroll').value,
+    status: prev ? prev.status : document.getElementById('s-status').value,
+    tuitionFee: Number(document.getElementById('s-tuition').value) || 0,
+    tuitionCycle: document.getElementById('s-cycle').value,
+    memo: document.getElementById('s-memo').value,
+    isSample: document.getElementById('s-sample').checked,
+  };
+
+  const others = getAll('students').filter(s => s.id !== student.id);
+  const conflicts = studentConflicts(student);
+  if (conflicts.length && !confirm(`⚠ 이 학생의 수업 시간이 겹칩니다.\n\n${conflicts.map(c => c.detail).join('\n')}\n\n그래도 저장할까요?`)) return;
+  if (!prev && others.some(s => s.name === name) && !confirm(`같은 이름(${name})의 학생이 이미 있습니다. 그래도 새로 등록할까요?`)) return;
+
+  if (!upsert('students', student)) return;
+  if (!prev) {
+    addHistory({ studentId: student.id, kind: '신규 등록', date: student.enrollDate || today(), from: '', to: className, reason: student.status === '재원' ? '' : `등록 시 상태: ${student.status}` });
+  } else if ((prev.extraClasses || []).join() !== extraClasses.join()) {
+    addHistory({ studentId: student.id, kind: '추가 수강 변경', date: today(), from: (prev.extraClasses || []).join(', ') || '없음', to: extraClasses.join(', ') || '없음', reason: '' });
+  }
+  closeModal('student-modal');
+  fillClassSelects();
+  if (currentDetailId === student.id && document.getElementById('student-detail').style.display === 'block') renderDetailTab(currentDetailTab);
+  else renderStudentList();
+}
+
+function studentRecordCount(id) {
+  return ['attendance','grades','consultations','payments'].reduce((n, k) => n + getAll(k).filter(r => r.studentId === id).length, 0);
+}
+
+function deleteStudent(id) {
+  if (!requireDirector()) return;
+  const s = getById('students', id);
+  if (!s) return;
+  const n = studentRecordCount(id);
+  if (n > 0) {
+    alert(`${s.name} 학생에게는 출결·성적·상담·수납 기록 ${n}건이 있어 삭제할 수 없습니다.\n기록을 보존하려면 '상태 변경'에서 퇴원 처리하세요.`);
+    return;
+  }
+  if (remove('students', id)) {
+    saveAll('history', getAll('history').filter(h => h.studentId !== id));
+    renderStudentList();
+  }
+}
+
+/* === 반 이동 / 상태 변경 === */
+function openMoveModal(id) {
+  if (!requireDirector()) return;
+  const s = getById('students', id);
+  if (!s) return;
+  editingId['move-modal'] = id;
+  fillClassSelects();
+  document.getElementById('mv-name').textContent = s.name;
+  document.getElementById('mv-from').innerHTML = classBadge(s.className);
+  document.getElementById('mv-to').value = '';
+  document.getElementById('mv-date').value = today();
+  document.getElementById('mv-reason').value = '';
+  document.getElementById('mv-conflicts').innerHTML = '';
+  openModal('move-modal');
+}
+function previewMoveConflicts() {
+  const s = getById('students', editingId['move-modal']);
+  const to = document.getElementById('mv-to').value;
+  if (!s || !to) { document.getElementById('mv-conflicts').innerHTML = ''; return; }
+  const moved = { ...s, className: to, extraClasses: (s.extraClasses || []).filter(c => c !== to) };
+  const list = studentConflicts(moved);
+  document.getElementById('mv-conflicts').innerHTML = list.length
+    ? `<div style="font-size:12px;font-weight:700;color:var(--red);margin-bottom:4px">⚠ 이동하면 시간이 겹칩니다</div>${conflictHtml(list)}` : '';
+}
+function saveMove() {
+  if (!requireDirector()) return;
+  const arr = getAll('students');
+  const s = arr.find(x => x.id === editingId['move-modal']);
+  if (!s) return;
+  const to = document.getElementById('mv-to').value;
+  const date = document.getElementById('mv-date').value;
+  const reason = document.getElementById('mv-reason').value.trim();
+  if (!to) { alert('이동할 반을 선택하세요.'); return; }
+  if (to === s.className) { alert('현재 반과 같습니다.'); return; }
+  if (!date || !reason) { alert('이동일과 사유를 입력하세요.'); return; }
+  const from = s.className;
+  s.className = to;
+  s.extraClasses = (s.extraClasses || []).filter(c => c !== to);
+  if (CLASS_FEES[to] && s.tuitionFee === CLASS_FEES[from] &&
+      confirm(`수강료도 ${to} 기본 수강료(${fmtMoney(CLASS_FEES[to])})로 바꿀까요?\n(지난 수납 기록은 바뀌지 않습니다)`)) {
+    s.tuitionFee = CLASS_FEES[to];
+  }
+  if (!saveAll('students', arr)) return;
+  if (!addHistory({ studentId: s.id, kind: '반 이동', date, from, to, reason })) return;
+  closeModal('move-modal');
+  alert(`${s.name} 학생을 ${from} → ${to}로 이동했습니다. 이력이 저장됐습니다.`);
+  fillClassSelects();
+  refreshAfterStudentChange(s.id);
+}
+
+function openStatusModal(id) {
+  if (!requireDirector()) return;
+  const s = getById('students', id);
+  if (!s) return;
+  editingId['status-modal'] = id;
+  document.getElementById('st-name').textContent = s.name;
+  document.getElementById('st-from').innerHTML = statusBadge(s.status);
+  document.getElementById('st-to').value = s.status === '재원' ? '휴원' : '재원';
+  document.getElementById('st-date').value = today();
+  document.getElementById('st-reason').value = '';
+  openModal('status-modal');
+}
+function saveStatusChange() {
+  if (!requireDirector()) return;
+  const arr = getAll('students');
+  const s = arr.find(x => x.id === editingId['status-modal']);
+  if (!s) return;
+  const to = document.getElementById('st-to').value;
+  const date = document.getElementById('st-date').value;
+  const reason = document.getElementById('st-reason').value.trim();
+  if (to === s.status) { alert('현재 상태와 같습니다.'); return; }
+  if (!date || !reason) { alert('적용일과 사유를 입력하세요.'); return; }
+  if (to === '퇴원' && !confirm(`${s.name} 학생을 ${fmtDate(date)}자로 퇴원 처리합니다.\n기록은 모두 보존되며, 나중에 '재원'으로 되돌릴 수 있습니다. 진행할까요?`)) return;
+  const from = s.status;
+  s.status = to;
+  if (!saveAll('students', arr)) return;
+  if (!addHistory({ studentId: s.id, kind: '상태 변경', date, from, to, reason })) return;
+  closeModal('status-modal');
+  alert(`${s.name}: ${from} → ${to} 변경을 저장했습니다.`);
+  refreshAfterStudentChange(s.id);
+}
+function refreshAfterStudentChange(id) {
+  if (document.getElementById('retention-modal').classList.contains('open')) openRetentionModal(id);
+  if (currentPage === 'students' && document.getElementById('student-detail').style.display === 'block') renderDetailTab(currentDetailTab);
+  else renderCurrentPage();
+}
+
+/* === 학생 상세 === */
+let currentDetailId = null;
+let currentDetailTab = 'info';
+
+function openStudentDetail(id) {
+  if (!canSeeStudent(id)) { alert('담당 반 학생만 볼 수 있습니다.'); return; }
+  if (currentPage !== 'students') showPage('students');
+  currentDetailId = id;
+  document.getElementById('students-list-view').style.display = 'none';
+  document.getElementById('student-detail').style.display = 'block';
+  switchDetailTab('info');
+}
+
+function closeStudentDetail() {
+  document.getElementById('students-list-view').style.display = '';
+  document.getElementById('student-detail').style.display = 'none';
+  renderStudentList();
+}
+
+function editStudentFromDetail() {
+  openStudentModal(currentDetailId);
+}
+
+function switchDetailTab(tab) {
+  if (tab === 'payment' && !isDirector()) tab = 'info';
+  currentDetailTab = tab;
+  document.querySelectorAll('.detail-tab').forEach(b => {
+    b.classList.toggle('active', b.dataset.tab === tab);
+  });
+  document.querySelectorAll('.detail-section').forEach(s => s.classList.remove('active'));
+  document.getElementById('detail-' + tab).classList.add('active');
+  renderDetailTab(tab);
+}
+
+function renderDetailTab(tab) {
+  const s = getById('students', currentDetailId);
+  if (!s) return;
+
+  document.getElementById('detail-name').innerHTML = esc(s.name) + sampleBadge(s);
+  document.getElementById('detail-sub').textContent = `${studentClasses(s).join(' + ')} · ${s.school||''} ${s.grade||''} · ${s.status||''}`;
+
+  if (tab === 'info') {
+    const periods = enrollmentPeriods(s);
+    document.getElementById('detail-info').innerHTML = `
+      <div class="card">
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px">
+          ${infoRow('반', classBadge(s.className) + (s.extraClasses || []).map(c => ` <span class="badge badge-gray">＋${esc(c)}</span>`).join(''))}
+          ${infoRow('프로그램', esc(s.program)||'—')}
+          ${infoRow('학교', `${esc(s.school)||'—'} ${esc(s.grade)}`)}
+          ${infoRow('상태', statusBadge(s.status))}
+          ${isDirector() ? infoRow('수강료', fmtMoney(s.tuitionFee) + ' (' + esc(s.tuitionCycle||'월납') + ')') : ''}
+          ${infoRow('등록일', fmtDate(s.enrollDate))}
+          ${infoRow('학부모', esc(s.parentName)||'—')}
+          ${infoRow('전화', esc(s.parentPhone)||'—')}
+          ${infoRow('카카오', esc(s.parentKakao)||'—')}
+          ${infoRow('담당 강사', [...new Set(getSessions().filter(se => inClass(s, se.name)).map(se => teacherName(se.teacherId)))].map(esc).join(', ') || '—')}
+          <div style="grid-column:1/-1">${infoRow('등록 기간', periods.map(p => `<span class="badge ${p.status==='재원'?'badge-green':p.status==='휴원'?'badge-orange':'badge-red'}" style="margin:0 4px 4px 0">${periodText(p)}</span>`).join(''))}</div>
+          <div style="grid-column:1/-1">${infoRow('메모', esc(s.memo)||'—')}</div>
+        </div>
+      </div>`;
+  }
+
+  if (tab === 'attend') {
+    document.getElementById('detail-attend').innerHTML = attendanceSummaryHtml(s, '', '');
+  }
+
+  if (tab === 'history') {
+    const rows = historyOf(s.id).reverse();
+    document.getElementById('detail-history').innerHTML = `
+      <div class="notice">반을 옮기거나 휴원·퇴원해도 출결·성적·수납·상담 기록은 지워지지 않습니다.</div>
+      <div class="card" style="padding:0;overflow:auto">
+        <table>
+          <thead><tr><th>날짜</th><th>구분</th><th>변경 전</th><th>변경 후</th><th>사유</th><th>처리자</th></tr></thead>
+          <tbody>${rows.length ? rows.map(h => `
+            <tr>
+              <td>${fmtDate(h.date)}</td>
+              <td><span class="badge ${h.kind==='반 이동'?'badge-blue':h.kind==='상태 변경'?'badge-orange':'badge-purple'}">${esc(h.kind)}</span></td>
+              <td>${esc(h.from)||'—'}</td>
+              <td style="font-weight:600">${esc(h.to)||'—'}</td>
+              <td style="font-size:12px">${esc(h.reason)||''}</td>
+              <td style="font-size:12px;color:var(--text-muted)">${esc(h.by)||''}</td>
+            </tr>`).join('') : '<tr><td colspan="6" style="text-align:center;color:var(--text-muted);padding:16px">이력 없음 (이 기능 도입 전 기록은 남아 있지 않습니다)</td></tr>'}</tbody>
+        </table>
+      </div>`;
+  }
+
+  if (tab === 'grades') {
+    const records = getAll('grades').filter(g => g.studentId === currentDetailId)
+      .sort((a,b) => b.date.localeCompare(a.date));
+    document.getElementById('detail-grades').innerHTML = `
+      <div style="margin-bottom:12px"><button class="btn btn-primary btn-sm" onclick="openGradeModalForStudent('${currentDetailId}')">+ 성적 추가</button></div>
+      <div class="card" style="padding:0;overflow:hidden">
+        <table>
+          <thead><tr><th>날짜</th><th>유형</th><th>전체</th><th>맞은수</th><th>점수</th><th>백분위</th><th>교재</th><th>시험범위</th><th>메모</th></tr></thead>
+          <tbody>${records.length ? records.map(r => `
+            <tr>
+              <td>${fmtDate(r.date)}</td>
+              <td><span class="badge badge-blue">${r.type||'—'}</span></td>
+              <td style="color:var(--text-muted)">${r.total!=null?r.total:'—'}</td>
+              <td style="color:var(--text-muted)">${r.correct!=null?r.correct:'—'}</td>
+              <td style="font-weight:700;color:var(--primary)">${r.score != null ? r.score+'점' : '—'}</td>
+              <td>${r.percentile != null ? r.percentile + '%' : '—'}</td>
+              <td style="font-size:12px">${r.currentBook||'—'}</td>
+              <td style="font-size:12px">${r.currentUnit||'—'}</td>
+              <td style="font-size:12px;color:var(--text-muted)">${r.note||''}</td>
+            </tr>`).join('') : '<tr><td colspan="9" style="text-align:center;color:var(--text-muted);padding:16px">기록 없음</td></tr>'}</tbody>
+        </table>
+      </div>`;
+  }
+
+  if (tab === 'consult') {
+    const records = getAll('consultations').filter(c => c.studentId === currentDetailId)
+      .sort((a,b) => b.date.localeCompare(a.date));
+    document.getElementById('detail-consult').innerHTML = `
+      <div style="margin-bottom:12px"><button class="btn btn-primary btn-sm" onclick="openConsultModalForStudent('${currentDetailId}')">+ 상담 추가</button></div>
+      <div class="card" style="padding:0;overflow:hidden">
+        <table>
+          <thead><tr><th>날짜</th><th>채널</th><th>내용 요약</th><th>후속 조치</th><th>완료</th></tr></thead>
+          <tbody>${records.length ? records.map(r => `
+            <tr>
+              <td>${fmtDate(r.date)}</td>
+              <td><span class="badge badge-blue">${r.channel||'—'}</span></td>
+              <td>${r.summary||'—'}</td>
+              <td style="font-size:12px;color:var(--text-muted)">${r.followUp||''}</td>
+              <td><span class="badge ${r.done?'badge-green':'badge-orange'}">${r.done?'완료':'미완료'}</span></td>
+            </tr>`).join('') : '<tr><td colspan="5" style="text-align:center;color:var(--text-muted);padding:16px">기록 없음</td></tr>'}</tbody>
+        </table>
+      </div>`;
+  }
+
+  if (tab === 'payment' && isDirector()) {
+    const records = getAll('payments').filter(p => p.studentId === currentDetailId)
+      .sort((a,b) => (b.dueDate||'').localeCompare(a.dueDate||''));
+    document.getElementById('detail-payment').innerHTML = `
+      <div style="margin-bottom:12px"><button class="btn btn-primary btn-sm" onclick="openPaymentModalForStudent('${currentDetailId}')">+ 납부 추가</button></div>
+      <div class="card" style="padding:0;overflow:hidden">
+        <table>
+          <thead><tr><th>납부예정일</th><th>금액</th><th>상태</th><th>납부일</th><th>방법</th><th>비고</th><th>관리</th></tr></thead>
+          <tbody>${records.length ? records.map(r => `
+            <tr>
+              <td>${fmtDate(r.dueDate)}</td>
+              <td style="font-weight:700">${fmtMoney(r.amount)}</td>
+              <td><span class="badge ${r.status==='완납'?'badge-green':'badge-red'}">${r.status}</span></td>
+              <td>${fmtDate(r.paidDate)}</td>
+              <td style="font-size:12px">${r.method||'—'}</td>
+              <td style="font-size:12px;color:var(--text-muted)">${r.note||''}</td>
+              <td>
+                <button class="btn btn-sm btn-ghost" onclick="togglePaymentStatus('${r.id}')">${r.status==='미납'?'완납 처리':'미납 처리'}</button>
+                <button class="btn btn-sm btn-danger" style="margin-left:4px" onclick="deletePaymentAndRefresh('${r.id}')">삭제</button>
+              </td>
+            </tr>`).join('') : '<tr><td colspan="7" style="text-align:center;color:var(--text-muted);padding:16px">기록 없음</td></tr>'}</tbody>
+        </table>
+      </div>`;
+  }
+}
+
+function infoRow(label, value) {
+  return `<div><div style="font-size:11px;color:var(--text-muted);margin-bottom:3px">${label}</div><div style="font-size:14px">${value}</div></div>`;
+}
+
+function attendBadge(s) {
+  if (s==='출석') return '<span class="badge badge-green">출석</span>';
+  if (s==='지각') return '<span class="badge badge-orange">지각</span>';
+  if (s==='결석') return '<span class="badge badge-red">결석</span>';
+  if (s==='휴원') return '<span class="badge badge-gray">휴원</span>';
+  return '—';
+}
+
+// 휴원은 결석과 따로 센다. 출석률 = (출석+지각) ÷ (출석+지각+결석), 휴원 제외
+function attendanceStats(records) {
+  const c = { '출석': 0, '지각': 0, '결석': 0, '휴원': 0 };
+  records.forEach(r => { if (c[r.status] !== undefined) c[r.status]++; });
+  const lessons = c['출석'] + c['지각'] + c['결석'];
+  const hwRecords = records.filter(r => r.status !== '휴원' && r.status !== '결석' && r.homework);
+  return {
+    ...c, lessons,
+    rate: lessons ? Math.round(((c['출석'] + c['지각']) / lessons) * 100) : null,
+    hwRate: hwRecords.length ? Math.round(hwRecords.filter(r => r.homework === '완료').length / hwRecords.length * 100) : null,
+  };
+}
+
+function attendanceSummaryHtml(s, from, to) {
+  const records = getAll('attendance')
+    .filter(a => a.studentId === s.id && (!from || a.date >= from) && (!to || a.date <= to))
+    .sort((a, b) => b.date.localeCompare(a.date));
+  const st = attendanceStats(records);
+  return `
+    <div class="card mini-stats">
+      <div><div class="ms-val">${st.lessons}</div><div class="ms-label">수업일(휴원 제외)</div></div>
+      <div><div class="ms-val" style="color:var(--green)">${st['출석']}</div><div class="ms-label">출석</div></div>
+      <div><div class="ms-val" style="color:var(--orange)">${st['지각']}</div><div class="ms-label">지각</div></div>
+      <div><div class="ms-val" style="color:var(--red)">${st['결석']}</div><div class="ms-label">결석</div></div>
+      <div><div class="ms-val" style="color:var(--text-muted)">${st['휴원']}</div><div class="ms-label">휴원</div></div>
+      <div><div class="ms-val">${st.rate == null ? '—' : st.rate + '%'}</div><div class="ms-label">출석률(지각 포함)</div></div>
+      <div><div class="ms-val">${st.hwRate == null ? '—' : st.hwRate + '%'}</div><div class="ms-label">숙제 완료율</div></div>
+    </div>
+    <div class="card" style="padding:0;overflow:auto">
+      <table>
+        <thead><tr><th>날짜</th><th>출결</th><th>결석 사유</th><th>숙제</th><th>준비물</th><th>메모</th><th>입력자</th></tr></thead>
+        <tbody>${records.length ? records.map(r => `
+          <tr>
+            <td>${fmtDate(r.date)} <span style="font-size:11px;color:var(--text-muted)">(${getDayKo(r.date)})</span></td>
+            <td>${attendBadge(r.status)}</td>
+            <td style="font-size:12px;color:var(--red)">${esc(r.absentReason)}</td>
+            <td>${r.status === '휴원' ? '—' : hwBadge(r.homework)}</td>
+            <td>${r.status === '휴원' ? '—' : matBadge(r.materials)}</td>
+            <td style="font-size:12px;color:var(--text-muted)">${esc(r.note)}</td>
+            <td style="font-size:12px;color:var(--text-muted)">${esc(r.by)}</td>
+          </tr>`).join('') : '<tr><td colspan="7" style="text-align:center;color:var(--text-muted);padding:16px">기록 없음</td></tr>'}</tbody>
+      </table>
+    </div>`;
+}
+function hwBadge(s) {
+  if (s==='완료') return '<span class="badge badge-green">완료</span>';
+  if (s==='일부') return '<span class="badge badge-orange">일부</span>';
+  if (s==='미완료') return '<span class="badge badge-red">미완료</span>';
+  return '—';
+}
+function matBadge(s) {
+  if (s==='준비') return '<span class="badge badge-green">준비</span>';
+  if (s==='미준비') return '<span class="badge badge-red">미준비</span>';
+  return '—';
+}
+
+/* === 출결·수업 === */
+function renderAttendancePage() {
+  const dateEl = document.getElementById('attend-date');
+  if (!dateEl.value) dateEl.value = today();
+  const date = dateEl.value;
+  const classFlt = document.getElementById('attend-class-filter').value;
+  const dayKo = getDayKo(date);
+
+  const classesToday = [...new Set(sessionsOn(dayKo).map(t => t.name))];
+  const targetClasses = classFlt ? [classFlt] : classesToday;
+
+  // 재원·휴원 학생만 (퇴원 제외). 휴원 학생은 '휴원'으로 고정 표시해 결석과 구분
+  const students = scopedStudents()
+    .filter(s => (s.status === '재원' || s.status === '휴원') && studentClasses(s).some(c => targetClasses.includes(c)))
+    .sort((a, b) => (a.className || '').localeCompare(b.className || '') || a.name.localeCompare(b.name));
+
+  const attendMap = {};
+  getAll('attendance').filter(a => a.date === date).forEach(a => { attendMap[a.studentId] = a; });
+
+  const container = document.getElementById('attendance-cards');
+  if (!students.length) {
+    container.innerHTML = `<div class="card" style="text-align:center;color:var(--text-muted)">${date} (${dayKo}) — ${classFlt ? classFlt + ' 학생이 없습니다.' : '이 날 수업이 있는 반의 학생이 없습니다.'}</div>`;
+    return;
+  }
+
+  const savedCount = students.filter(s => attendMap[s.id]).length;
+  container.innerHTML = `
+    <div style="margin-bottom:12px;font-size:13px;color:var(--text-muted);display:flex;gap:10px;flex-wrap:wrap;align-items:center">
+      <strong>${date} (${dayKo})</strong> · ${students.length}명 · 수업: ${esc(targetClasses.join(', ')) || '없음'}
+      <span class="${savedCount === students.length ? 'saved-tag' : 'unsaved-tag'}">저장됨 ${savedCount} / ${students.length}</span>
+    </div>
+    ${students.map(s => {
+      const saved = attendMap[s.id];
+      const onLeave = s.status === '휴원';
+      const a = saved || { status: onLeave ? '휴원' : '출석', homework:'완료', materials:'준비', note:'' };
+      const tag = saved ? '<span class="saved-tag">저장됨</span>' : '<span class="unsaved-tag">미저장</span>';
+      if (onLeave) {
+        return `
+        <div class="attend-card on-leave" data-sid="${s.id}" data-leave="1">
+          <div>
+            <div class="student-name">${esc(s.name)}${sampleBadge(s)}</div>
+            <div style="font-size:11px;color:var(--text-muted)">${esc(studentClasses(s).join(' + '))}</div>
+          </div>
+          <div class="controls">
+            <span class="badge badge-gray">휴원 중</span>
+            <span style="font-size:12px;color:var(--text-muted)">결석으로 집계되지 않습니다</span>
+            ${tag}
+          </div>
+        </div>`;
+      }
+      return `
+        <div class="attend-card" id="ac-${s.id}" data-sid="${s.id}">
+          <div>
+            <div class="student-name">${esc(s.name)}${sampleBadge(s)}</div>
+            <div style="font-size:11px;color:var(--text-muted)">${esc(studentClasses(s).join(' + '))}</div>
+          </div>
+          <div class="controls">
+            <span class="label">출결</span>
+            <button class="toggle-btn ${attendClass(a.status)}" id="att-${s.id}" data-val="${a.status}" onclick="cycleAttend('${s.id}')">
+              ${a.status||'출석'}
+            </button>
+            <input type="text" placeholder="결석 사유" value="${esc(a.absentReason)}" id="reason-${s.id}"
+              style="border:1px solid var(--border);border-radius:6px;padding:5px 8px;font-size:12px;font-family:inherit;width:120px;display:${(a.status==='결석')?'block':'none'}"
+              title="결석 사유">
+            <span class="label" style="margin-left:8px">숙제</span>
+            <button class="toggle-btn ${hwClass(a.homework)}" id="hw-${s.id}" data-val="${a.homework||'완료'}" onclick="cycleHw('${s.id}')">
+              ${a.homework||'완료'}
+            </button>
+            <span class="label" style="margin-left:8px">준비물</span>
+            <button class="toggle-btn ${matClass(a.materials)}" id="mat-${s.id}" data-val="${a.materials||'준비'}" onclick="cycleMat('${s.id}')">
+              ${a.materials||'준비'}
+            </button>
+            <input type="text" placeholder="메모" value="${esc(a.note)}" id="note-${s.id}"
+              style="border:1px solid var(--border);border-radius:6px;padding:5px 8px;font-size:12px;font-family:inherit;width:110px">
+            ${tag}
+          </div>
+        </div>`;
+    }).join('')}`;
+}
+
+function setAttendMode(mode) {
+  document.getElementById('attend-mode-date').classList.toggle('active', mode === 'date');
+  document.getElementById('attend-mode-student').classList.toggle('active', mode === 'student');
+  document.getElementById('attend-date-view').style.display = mode === 'date' ? '' : 'none';
+  document.getElementById('attend-student-view').style.display = mode === 'student' ? '' : 'none';
+  if (mode === 'student') {
+    const sel = document.getElementById('cum-student');
+    const keep = sel.value;
+    const list = scopedStudents().sort((a, b) => a.name.localeCompare(b.name));
+    sel.innerHTML = list.map(s => `<option value="${s.id}">${esc(s.name)} (${esc(s.className||'')}${s.status !== '재원' ? ' · ' + s.status : ''})${s.isSample ? ' [샘플]' : ''}</option>`).join('');
+    if (list.some(s => s.id === keep)) sel.value = keep;
+    if (!document.getElementById('cum-from').value) document.getElementById('cum-from').value = thisMonth() + '-01';
+    if (!document.getElementById('cum-to').value) document.getElementById('cum-to').value = today();
+    renderAttendanceCumulative();
+  } else {
+    renderAttendancePage();
+  }
+}
+
+function renderAttendanceCumulative() {
+  const s = getById('students', document.getElementById('cum-student').value);
+  const box = document.getElementById('attendance-cumulative');
+  if (!s || !canSeeStudent(s.id)) { box.innerHTML = '<div class="card text-muted">학생을 선택하세요.</div>'; return; }
+  box.innerHTML = attendanceSummaryHtml(s, document.getElementById('cum-from').value, document.getElementById('cum-to').value);
+}
+
+function openAttendanceFor(className) {
+  showPage('attendance');
+  setAttendMode('date');
+  document.getElementById('attend-date').value = today();
+  document.getElementById('attend-class-filter').value = className;
+  renderAttendancePage();
+}
+
+function markAllPresent() {
+  document.querySelectorAll('#attendance-cards .attend-card:not([data-leave])').forEach(card => {
+    const sid = card.dataset.sid;
+    const btn = document.getElementById('att-' + sid);
+    btn.dataset.val = '출석'; btn.textContent = '출석';
+    btn.className = 'toggle-btn ' + attendClass('출석');
+    const r = document.getElementById('reason-' + sid);
+    if (r) { r.value = ''; r.style.display = 'none'; }
+  });
+}
+
+function attendClass(v) {
+  if (v==='출석') return 'toggle-attend';
+  if (v==='지각') return 'toggle-late';
+  return 'toggle-absent';
+}
+function hwClass(v) {
+  if (v==='완료') return 'toggle-done';
+  if (v==='일부') return 'toggle-partial';
+  return 'toggle-undone';
+}
+function matClass(v) { return v==='준비' ? 'toggle-ready' : 'toggle-notready'; }
+
+function cycleAttend(sid) {
+  const btn = document.getElementById('att-'+sid);
+  const seq = ['출석','지각','결석'];
+  const cur = btn.dataset.val || '출석';
+  const next = seq[(seq.indexOf(cur)+1) % seq.length];
+  btn.dataset.val = next; btn.textContent = next;
+  btn.className = 'toggle-btn ' + attendClass(next);
+  const reasonEl = document.getElementById('reason-'+sid);
+  if (reasonEl) reasonEl.style.display = next === '결석' ? 'block' : 'none';
+  if (next !== '결석' && reasonEl) reasonEl.value = '';
+}
+function cycleHw(sid) {
+  const btn = document.getElementById('hw-'+sid);
+  const seq = ['완료','일부','미완료'];
+  const cur = btn.dataset.val || '완료';
+  const next = seq[(seq.indexOf(cur)+1) % seq.length];
+  btn.dataset.val = next; btn.textContent = next;
+  btn.className = 'toggle-btn ' + hwClass(next);
+}
+function cycleMat(sid) {
+  const btn = document.getElementById('mat-'+sid);
+  const cur = btn.dataset.val || '준비';
+  const next = cur==='준비' ? '미준비' : '준비';
+  btn.dataset.val = next; btn.textContent = next;
+  btn.className = 'toggle-btn ' + matClass(next);
+}
+
+function saveAllAttendance() {
+  const date = document.getElementById('attend-date').value;
+  if (!date) { alert('날짜를 선택하세요.'); return; }
+  const cards = [...document.querySelectorAll('#attendance-cards .attend-card')];
+  if (!cards.length) { alert('저장할 학생이 없습니다.'); return; }
+  const existing = getAll('attendance');
+  const by = currentUserName();
+
+  cards.forEach(card => {
+    const sid = card.dataset.sid;
+    if (!canSeeStudent(sid)) return;   // 강사는 담당 학생만 저장
+    const st = getById('students', sid);
+    const idx = existing.findIndex(a => a.studentId === sid && a.date === date);
+    let record;
+    if (card.dataset.leave) {
+      record = { status: '휴원', absentReason: '', homework: '', materials: '', note: '' };
+    } else {
+      const status = document.getElementById('att-'+sid).dataset.val;
+      record = {
+        status,
+        absentReason: status === '결석' ? (document.getElementById('reason-'+sid)?.value || '') : '',
+        homework: document.getElementById('hw-'+sid).dataset.val,
+        materials: document.getElementById('mat-'+sid).dataset.val,
+        note: document.getElementById('note-'+sid).value,
+      };
+    }
+    const full = { ...(idx >= 0 ? existing[idx] : {}), id: idx >= 0 ? existing[idx].id : uid(), studentId: sid, date,
+      ...record, classAtTime: st ? st.className : '', by, savedAt: new Date().toISOString() };
+    if (idx >= 0) existing[idx] = full; else existing.push(full);
+  });
+  if (!saveAll('attendance', existing)) return;
+  // 실제로 저장소에 기록된 건수를 다시 세서 알린다
+  const stored = getAll('attendance').filter(a => a.date === date && cards.some(c => c.dataset.sid === a.studentId)).length;
+  renderAttendancePage();
+  alert(`출결 저장 완료: ${date} · ${stored}명 기록됨`);
+}
+
+/* === 수강료·매출 === */
+function initPaymentMonthSelect() {
+  const sel = document.getElementById('payment-month');
+  sel.innerHTML = '';
+  for (let i = 0; i < 6; i++) {
+    const d = new Date(); d.setDate(1); d.setMonth(d.getMonth() - i);
+    const val = ymd(d).slice(0,7);
+    const opt = document.createElement('option');
+    opt.value = val; opt.textContent = val;
+    if (i===0) opt.selected = true;
+    sel.appendChild(opt);
+  }
+}
+
+function renderPaymentsPage() {
+  const month = document.getElementById('payment-month').value;
+  const statusFlt = document.getElementById('payment-status-filter').value;
+  const students = getAll('students');
+  let payments = getAll('payments').filter(p => p.dueDate && p.dueDate.startsWith(month));
+  if (statusFlt) payments = payments.filter(p => p.status === statusFlt);
+  payments.sort((a,b) => a.dueDate.localeCompare(b.dueDate));
+
+  const total = payments.reduce((s,p)=>s+Number(p.amount||0),0);
+  const paid = payments.filter(p=>p.status==='완납').reduce((s,p)=>s+Number(p.amount||0),0);
+  const unpaid = payments.filter(p=>p.status==='미납').reduce((s,p)=>s+Number(p.amount||0),0);
+
+  document.getElementById('monthly-summary').innerHTML = `
+    <div style="display:flex;gap:32px;flex-wrap:wrap">
+      <div><div style="font-size:11px;color:var(--text-muted)">합계</div><div style="font-size:22px;font-weight:700;color:var(--primary)">${fmtMoney(total)}</div></div>
+      <div><div style="font-size:11px;color:var(--text-muted)">완납</div><div style="font-size:22px;font-weight:700;color:var(--green)">${fmtMoney(paid)}</div></div>
+      <div><div style="font-size:11px;color:var(--text-muted)">미납</div><div style="font-size:22px;font-weight:700;color:var(--red)">${fmtMoney(unpaid)}</div></div>
+    </div>`;
+
+  const tbody = document.getElementById('payment-tbody');
+  tbody.innerHTML = payments.length ? payments.map(p => {
+    const s = students.find(x=>x.id===p.studentId);
+    return `<tr>
+      <td style="font-weight:600">${s?s.name:'—'}</td>
+      <td>${s?classBadge(s.className):'—'}</td>
+      <td>${fmtDate(p.dueDate)}</td>
+      <td style="font-weight:700">${fmtMoney(p.amount)}</td>
+      <td><span class="badge ${p.status==='완납'?'badge-green':'badge-red'}">${p.status}</span></td>
+      <td>${fmtDate(p.paidDate)}</td>
+      <td style="font-size:12px;color:var(--text-muted)">${p.note||''}</td>
+      <td>
+        <button class="btn btn-sm btn-ghost" onclick="togglePaymentStatus('${p.id}',true)">${p.status==='미납'?'완납':'미납'}</button>
+        <button class="btn btn-sm btn-danger" style="margin-left:4px" onclick="deletePaymentRecord('${p.id}')">삭제</button>
+      </td>
+    </tr>`;
+  }).join('') : '<tr><td colspan="8" style="text-align:center;color:var(--text-muted);padding:16px">납부 내역 없음</td></tr>';
+}
+
+function openPaymentModal(id) {
+  if (!requireDirector()) return;
+  editingId['payment-modal'] = id || null;
+  document.getElementById('payment-modal-title').textContent = id ? '납부 내역 수정' : '납부 내역 추가';
+  const p = id ? getById('payments', id) : {};
+  // 휴원·퇴원 학생의 기존 수납 기록을 수정해도 다른 학생으로 바뀌지 않도록 해당 학생을 목록에 포함
+  const students = getAll('students').filter(s => s.status === '재원' || s.id === p.studentId || s.id === currentDetailId);
+  const sel = document.getElementById('p-student');
+  sel.innerHTML = students.map(s=>`<option value="${s.id}" ${p.studentId===s.id?'selected':''}>${s.name} (${s.className||''})</option>`).join('');
+  document.getElementById('p-amount').value = p.amount || '';
+  document.getElementById('p-due').value = p.dueDate || '';
+  document.getElementById('p-paid').value = p.paidDate || '';
+  document.getElementById('p-status').value = p.status || '미납';
+  document.getElementById('p-method').value = p.method || '계좌이체';
+  document.getElementById('p-note').value = p.note || '';
+  openModal('payment-modal');
+}
+
+function openPaymentModalForStudent(sid) {
+  openPaymentModal();
+  document.getElementById('p-student').value = sid;
+  const s = getById('students', sid);
+  if (s) document.getElementById('p-amount').value = s.tuitionFee;
+}
+
+function savePayment() {
+  if (!requireDirector()) return;
+  const amount = Number(document.getElementById('p-amount').value);
+  if (!amount) { alert('금액을 입력하세요.'); return; }
+  const studentId = document.getElementById('p-student').value;
+  if (!studentId) { alert('학생을 선택하세요.'); return; }
+  const id = editingId['payment-modal'] || uid();
+  const ok = upsert('payments', {
+    ...(getById('payments', id) || {}),
+    id,
+    studentId,
+    amount,
+    dueDate: document.getElementById('p-due').value,
+    paidDate: document.getElementById('p-paid').value,
+    status: document.getElementById('p-status').value,
+    method: document.getElementById('p-method').value,
+    note: document.getElementById('p-note').value,
+  });
+  if (!ok) return;
+  closeModal('payment-modal');
+  if (currentPage === 'payments') renderPaymentsPage();
+  if (currentDetailId) renderDetailTab('payment');
+}
+
+function togglePaymentStatus(id, refresh) {
+  if (!requireDirector()) return;
+  const payments = getAll('payments');
+  const p = payments.find(x=>x.id===id);
+  if (!p) return;
+  p.status = p.status==='완납' ? '미납' : '완납';
+  if (p.status==='완납' && !p.paidDate) p.paidDate = today();
+  saveAll('payments', payments);
+  if (refresh) renderPaymentsPage();
+  else renderDetailTab('payment');
+}
+
+function deletePaymentRecord(id) {
+  if (requireDirector() && remove('payments', id)) renderPaymentsPage();
+}
+function deletePaymentAndRefresh(id) {
+  if (requireDirector() && remove('payments', id)) renderDetailTab('payment');
+}
+
+function printStudentReport() {
+  window.print();
+}
+
+/* === 상담 기록 === */
+function renderConsultationsPage() {
+  const search = document.getElementById('consult-search').value.toLowerCase();
+  const flt = document.getElementById('consult-followup-filter').value;
+  const students = scopedStudents();
+  const ids = new Set(students.map(s => s.id));
+
+  let consults = getAll('consultations').filter(c => ids.has(c.studentId)).sort((a,b) => (b.date||'').localeCompare(a.date||''));
+  if (search) consults = consults.filter(c => {
+    const s = students.find(x=>x.id===c.studentId);
+    return s && s.name.toLowerCase().includes(search);
+  });
+  if (flt === 'pending') consults = consults.filter(c => !c.done && c.followUp);
+  if (flt === 'done') consults = consults.filter(c => c.done);
+
+  const tbody = document.getElementById('consult-tbody');
+  tbody.innerHTML = consults.length ? consults.map(c => {
+    const s = students.find(x=>x.id===c.studentId);
+    return `<tr>
+      <td style="font-size:12px">${fmtDate(c.date)}</td>
+      <td style="font-weight:600">${s?esc(s.name):'—'}${sampleBadge(s)}</td>
+      <td><span class="badge badge-blue">${esc(c.channel)||'—'}</span></td>
+      <td>${esc(c.summary)||'—'}${c.by ? `<div style="font-size:11px;color:var(--text-muted)">작성: ${esc(c.by)}</div>` : ''}</td>
+      <td style="font-size:12px;color:var(--text-muted)">${esc(c.followUp)}</td>
+      <td><span class="badge ${c.done?'badge-green':'badge-orange'}">${c.done?'완료':'미완료'}</span></td>
+      <td style="white-space:nowrap">
+        <button class="btn btn-sm btn-ghost" onclick="toggleConsultDone('${c.id}')">${c.done?'미완료':'완료'}</button>
+        <button class="btn btn-sm btn-ghost" style="margin-left:4px" onclick="openConsultModal('${c.id}')">수정</button>
+        ${isDirector() ? `<button class="btn btn-sm btn-danger" style="margin-left:4px" onclick="deleteConsult('${c.id}')">삭제</button>` : ''}
+      </td>
+    </tr>`;
+  }).join('') : '<tr><td colspan="7" style="text-align:center;color:var(--text-muted);padding:16px">상담 기록 없음</td></tr>';
+}
+
+function openConsultModal(id) {
+  editingId['consult-modal'] = id || null;
+  document.getElementById('consult-modal-title').textContent = id ? '상담 수정' : '상담 추가';
+  const c = id ? getById('consultations', id) : {};
+  const students = scopedStudents();
+  const sel = document.getElementById('c-student');
+  sel.innerHTML = students.map(s=>`<option value="${s.id}" ${c.studentId===s.id?'selected':''}>${esc(s.name)}${s.status !== '재원' ? ' (' + s.status + ')' : ''}</option>`).join('');
+  document.getElementById('c-date').value = c.date || today();
+  document.getElementById('c-channel').value = c.channel || '카톡';
+  document.getElementById('c-summary').value = c.summary || '';
+  document.getElementById('c-followup').value = c.followUp || '';
+  document.getElementById('c-done').value = String(c.done || false);
+  openModal('consult-modal');
+}
+
+function openConsultModalForStudent(sid) {
+  openConsultModal();
+  document.getElementById('c-student').value = sid;
+}
+
+function saveConsult() {
+  const summary = document.getElementById('c-summary').value.trim();
+  if (!summary) { alert('내용을 입력하세요.'); return; }
+  const studentId = document.getElementById('c-student').value;
+  if (!studentId || !canSeeStudent(studentId)) { alert('담당 학생을 선택하세요.'); return; }
+  const id = editingId['consult-modal'] || uid();
+  const prev = getById('consultations', id);
+  const ok = upsert('consultations', {
+    ...(prev || {}),
+    id,
+    studentId,
+    date: document.getElementById('c-date').value,
+    channel: document.getElementById('c-channel').value,
+    summary,
+    followUp: document.getElementById('c-followup').value,
+    done: document.getElementById('c-done').value === 'true',
+    by: prev && prev.by ? prev.by : currentUserName(),
+  });
+  if (!ok) return;
+  closeModal('consult-modal');
+  if (currentPage === 'consultations') renderConsultationsPage();
+  if (currentPage === 'retention' && document.getElementById('retention-modal').classList.contains('open')) openRetentionModal(studentId);
+  if (currentDetailId) renderDetailTab('consult');
+}
+
+function toggleConsultDone(id) {
+  const arr = getAll('consultations');
+  const c = arr.find(x=>x.id===id);
+  if (!c || !canSeeStudent(c.studentId)) return;
+  c.done = !c.done;
+  if (saveAll('consultations', arr)) renderConsultationsPage();
+}
+
+function deleteConsult(id) {
+  if (requireDirector() && remove('consultations', id)) renderConsultationsPage();
+}
+
+/* === 성적·진도 === */
+function renderGradesPage() {
+  const search = document.getElementById('grade-search').value.toLowerCase();
+  const typeFlt = document.getElementById('grade-type-filter').value;
+  const students = scopedStudents();
+  const ids = new Set(students.map(s => s.id));
+
+  let grades = getAll('grades').filter(g => ids.has(g.studentId)).sort((a,b) => (b.date||'').localeCompare(a.date||''));
+  if (search) grades = grades.filter(g => {
+    const s = students.find(x=>x.id===g.studentId);
+    return s && s.name.toLowerCase().includes(search);
+  });
+  if (typeFlt) grades = grades.filter(g => g.type === typeFlt);
+
+  const tbody = document.getElementById('grade-tbody');
+  tbody.innerHTML = grades.length ? grades.map(g => {
+    const s = students.find(x=>x.id===g.studentId);
+    return `<tr>
+      <td style="font-size:12px">${fmtDate(g.date)}</td>
+      <td style="font-weight:600">${s?s.name:'—'}</td>
+      <td><span class="badge badge-blue">${g.type||'—'}</span></td>
+      <td style="color:var(--text-muted)">${g.total!=null?g.total:'—'}</td>
+      <td style="color:var(--text-muted)">${g.correct!=null?g.correct:'—'}</td>
+      <td style="font-weight:700;color:var(--primary)">${g.score!=null?g.score+'점':'—'}</td>
+      <td>${g.percentile!=null?g.percentile+'%':'—'}</td>
+      <td style="font-size:12px">${g.currentBook||'—'}</td>
+      <td style="font-size:12px">${g.currentUnit||'—'}</td>
+      <td style="font-size:12px;color:var(--text-muted)">${g.note||''}</td>
+      <td>
+        <button class="btn btn-sm btn-ghost" onclick="openGradeModal('${g.id}')">수정</button>
+        ${isDirector() ? `<button class="btn btn-sm btn-danger" style="margin-left:4px" onclick="deleteGrade('${g.id}')">삭제</button>` : ''}
+      </td>
+    </tr>`;
+  }).join('') : '<tr><td colspan="11" style="text-align:center;color:var(--text-muted);padding:16px">성적 기록 없음</td></tr>';
+}
+
+function calcScore() {
+  const total = Number(document.getElementById('g-total').value);
+  const correct = Number(document.getElementById('g-correct').value);
+  if (total > 0 && correct >= 0) {
+    document.getElementById('g-score').value = Math.round((correct / total) * 100);
+  } else {
+    document.getElementById('g-score').value = '';
+  }
+}
+
+function openGradeModal(id) {
+  editingId['grade-modal'] = id || null;
+  document.getElementById('grade-modal-title').textContent = id ? '성적 수정' : '성적 추가';
+  const g = id ? getById('grades', id) : {};
+  const students = scopedStudents();
+  const sel = document.getElementById('g-student');
+  sel.innerHTML = students.map(s=>`<option value="${s.id}" ${g.studentId===s.id?'selected':''}>${esc(s.name)}${s.status !== '재원' ? ' (' + s.status + ')' : ''}</option>`).join('');
+  document.getElementById('g-date').value = g.date || today();
+  document.getElementById('g-type').value = g.type || '단어시험';
+  document.getElementById('g-total').value = g.total != null ? g.total : '';
+  document.getElementById('g-correct').value = g.correct != null ? g.correct : '';
+  document.getElementById('g-score').value = g.score != null ? g.score : '';
+  document.getElementById('g-percentile').value = g.percentile != null ? g.percentile : '';
+  document.getElementById('g-book').value = g.currentBook || '';
+  document.getElementById('g-unit').value = g.currentUnit || '';
+  document.getElementById('g-note').value = g.note || '';
+  openModal('grade-modal');
+}
+
+function openGradeModalForStudent(sid) {
+  openGradeModal();
+  document.getElementById('g-student').value = sid;
+}
+
+function saveGrade() {
+  const id = editingId['grade-modal'] || uid();
+  const total = document.getElementById('g-total').value !== '' ? Number(document.getElementById('g-total').value) : null;
+  const correct = document.getElementById('g-correct').value !== '' ? Number(document.getElementById('g-correct').value) : null;
+  const scoreVal = document.getElementById('g-score').value;
+  const studentId = document.getElementById('g-student').value;
+  if (!studentId || !canSeeStudent(studentId)) { alert('담당 학생을 선택하세요.'); return; }
+  const prev = getById('grades', id);
+  const st = getById('students', studentId);
+  const ok = upsert('grades', {
+    ...(prev || {}),
+    classAtTime: prev && prev.classAtTime ? prev.classAtTime : (st ? st.className : ''),
+    by: prev && prev.by ? prev.by : currentUserName(),
+    id,
+    studentId,
+    date: document.getElementById('g-date').value,
+    type: document.getElementById('g-type').value,
+    total,
+    correct,
+    score: scoreVal !== '' ? Number(scoreVal) : null,
+    percentile: document.getElementById('g-percentile').value !== '' ? Number(document.getElementById('g-percentile').value) : null,
+    currentBook: document.getElementById('g-book').value,
+    currentUnit: document.getElementById('g-unit').value,
+    note: document.getElementById('g-note').value,
+  });
+  if (!ok) return;
+  closeModal('grade-modal');
+  if (currentPage === 'grades') renderGradesPage();
+  if (currentDetailId) renderDetailTab('grades');
+}
+
+function deleteGrade(id) {
+  if (requireDirector() && remove('grades', id)) renderGradesPage();
+}
+
+/* === 홍보 관리 === */
+function renderMarketingPage() {
+  const chFlt = document.getElementById('mkt-channel-filter').value;
+  let items = getAll('marketing');
+  if (chFlt) items = items.filter(m => m.channel === chFlt);
+
+  const statuses = ['기획','작성중','발행'];
+  const icons = { '기획':'💡', '작성중':'✏️', '발행':'✅' };
+  const kanban = document.getElementById('marketing-kanban');
+  kanban.innerHTML = statuses.map(status => {
+    const col = items.filter(m => m.status === status);
+    return `
+      <div class="kanban-col">
+        <div class="kanban-col-title">
+          <span>${icons[status]} ${status} <span style="background:var(--border);border-radius:10px;padding:1px 8px;font-size:11px">${col.length}</span></span>
+        </div>
+        ${col.map(m => `
+          <div class="kanban-item">
+            <div class="k-title">${m.title}</div>
+            <div class="k-meta">
+              <span class="badge badge-gray">${m.channel}</span>
+              ${m.publishDate ? `<span style="margin-left:6px">${fmtDate(m.publishDate)}</span>` : ''}
+              ${m.link ? `<a href="${m.link}" target="_blank" style="margin-left:6px;color:var(--primary);font-size:11px">🔗</a>` : ''}
+            </div>
+            ${m.memo ? `<div style="font-size:11px;color:var(--text-muted);margin-top:4px">${m.memo}</div>` : ''}
+            <div style="margin-top:8px;display:flex;gap:4px">
+              <button class="btn btn-sm btn-ghost" onclick="openMarketingModal('${m.id}')">수정</button>
+              <button class="btn btn-sm btn-danger" onclick="deleteMarketing('${m.id}')">삭제</button>
+            </div>
+          </div>`).join('')}
+      </div>`;
+  }).join('');
+}
+
+function openMarketingModal(id) {
+  editingId['marketing-modal'] = id || null;
+  document.getElementById('marketing-modal-title').textContent = id ? '콘텐츠 수정' : '콘텐츠 추가';
+  const m = id ? getById('marketing', id) : {};
+  document.getElementById('m-channel').value = m.channel || '블로그';
+  document.getElementById('m-status').value = m.status || '기획';
+  document.getElementById('m-title').value = m.title || '';
+  document.getElementById('m-date').value = m.publishDate || '';
+  document.getElementById('m-link').value = m.link || '';
+  document.getElementById('m-memo').value = m.memo || '';
+  openModal('marketing-modal');
+}
+
+function saveMarketing() {
+  if (!requireDirector()) return;
+  const title = document.getElementById('m-title').value.trim();
+  if (!title) { alert('제목을 입력하세요.'); return; }
+  const id = editingId['marketing-modal'] || uid();
+  upsert('marketing', {
+    id,
+    channel: document.getElementById('m-channel').value,
+    status: document.getElementById('m-status').value,
+    title,
+    publishDate: document.getElementById('m-date').value,
+    link: document.getElementById('m-link').value,
+    memo: document.getElementById('m-memo').value,
+  });
+  closeModal('marketing-modal');
+  renderMarketingPage();
+}
+
+function deleteMarketing(id) {
+  if (requireDirector() && remove('marketing', id)) renderMarketingPage();
+}
+
+/* === 반 편성·시간표 === */
+function renderTimetable() {
+  const sessions = getSessions();
+  const students = getAll('students');
+  const director = isDirector();
+
+  // 중복 확인: 원장은 전체, 강사는 담당 수업 기준
+  const scopeSessions = sessions.filter(inRoleSession);
+  const conflicts = findConflicts(director ? sessions : scopeSessions, scopedStudents());
+  document.getElementById('conflict-list').innerHTML =
+    conflictHtml(conflicts, '✓ 겹치는 시간이 없습니다. (같은 강사·같은 교실·같은 학생의 수업 시간이 서로 겹치지 않음)') +
+    (sessions.some(s => !s.room) && director ? '<p style="font-size:11px;color:var(--text-muted);margin-top:8px">※ 교실이 비어 있는 수업은 교실 중복 검사에서 빠집니다. 수업 목록에서 교실을 입력하세요.</p>' : '');
+
+  // 주간 시간표 (토요일은 수업이 있을 때만)
+  const days = WEEK_DAYS.filter(d => d !== '토' || sessions.some(s => s.days.includes('토')));
+  const starts = [...new Set(sessions.map(s => s.start))].sort();
+  const grid = document.getElementById('timetable-grid');
+  grid.style.gridTemplateColumns = `80px repeat(${days.length}, minmax(110px, 1fr))`;
+  grid.innerHTML = `
+    <div class="tt-header">시간</div>
+    ${days.map(d => `<div class="tt-header">${d}요일</div>`).join('')}
+    ${starts.map(t => `<div class="tt-time">${t}</div>${days.map(day => {
+        const list = sessions.filter(s => s.start === t && s.days.includes(day));
+        return `<div class="tt-cell">${list.map(x => `<div class="tt-class" style="background:${CLASS_COLORS[x.name] || '#6B1F68'};${inRoleSession(x) ? '' : 'opacity:0.45'}">${esc(x.name)}<span class="time-label">${x.start}~${x.end} · ${esc(teacherName(x.teacherId))}${x.room ? ' · ' + esc(x.room) : ''}</span></div>`).join('')}</div>`;
+      }).join('')}`).join('')}`;
+
+  // 수업 목록
+  const countIn = name => students.filter(s => s.status === '재원' && inClass(s, name)).length;
+  const sorted = [...sessions].sort((a, b) => a.name.localeCompare(b.name) || a.start.localeCompare(b.start));
+  document.getElementById('session-tbody').innerHTML = sorted.length ? sorted.map(s => `
+    <tr>
+      <td>${classBadge(s.name)}</td>
+      <td>${s.days.join('·')}</td>
+      <td>${s.start}~${s.end}</td>
+      <td>${esc(teacherName(s.teacherId))}</td>
+      <td>${esc(s.room) || '<span class="text-muted">미입력</span>'}</td>
+      <td>${countIn(s.name)}명</td>
+      ${director ? `<td style="white-space:nowrap">
+        <button class="btn btn-sm btn-ghost" onclick="openSessionModal('${s.id}')">수정</button>
+        <button class="btn btn-sm btn-danger" style="margin-left:4px" onclick="deleteSession('${s.id}')">삭제</button>
+      </td>` : ''}
+    </tr>`).join('') : `<tr><td colspan="7" class="text-muted" style="text-align:center;padding:16px">등록된 수업이 없습니다.</td></tr>`;
+
+  // 반 편성 현황
+  const names = director ? classNames() : myClassNames();
+  document.getElementById('class-roster').innerHTML = names.map(n => {
+    const list = students.filter(s => s.status !== '퇴원' && inClass(s, n))
+      .sort((a, b) => a.name.localeCompare(b.name));
+    return `<div class="roster-box">
+      <h4><span>${esc(n)}</span><span class="text-muted" style="font-weight:400">${list.filter(s => s.status === '재원').length}명</span></h4>
+      ${list.length ? list.map(s => `<div class="roster-student">
+        <span><a href="#" onclick="openStudentDetail('${s.id}');return false" style="color:var(--text);text-decoration:none">${s.className !== n ? '＋' : ''}${esc(s.name)}</a>${sampleBadge(s)}${s.status === '휴원' ? ' <span class="badge badge-orange">휴원</span>' : ''}</span>
+        ${director && s.className === n ? `<button class="btn btn-sm btn-ghost" onclick="openMoveModal('${s.id}')">이동</button>` : ''}
+      </div>`).join('') : '<div class="text-muted" style="font-size:12px">학생 없음</div>'}
+    </div>`;
+  }).join('');
+
+  // 반 이동 이력
+  const visible = new Set(scopedStudents().map(s => s.id));
+  const moves = getAll('history').filter(h => h.kind === '반 이동' && visible.has(h.studentId))
+    .sort((a, b) => (b.date + b.at).localeCompare(a.date + a.at));
+  document.getElementById('move-history-tbody').innerHTML = moves.length ? moves.map(h => {
+    const s = students.find(x => x.id === h.studentId);
+    return `<tr>
+      <td>${fmtDate(h.date)}</td>
+      <td style="font-weight:600">${s ? esc(s.name) : '—'}</td>
+      <td>${esc(h.from)}</td>
+      <td>${esc(h.to)}</td>
+      <td style="font-size:12px">${esc(h.reason)}</td>
+      <td style="font-size:12px;color:var(--text-muted)">${esc(h.by)}</td>
+    </tr>`;
+  }).join('') : '<tr><td colspan="6" class="text-muted" style="text-align:center;padding:16px">반 이동 기록 없음</td></tr>';
+}
+
+function openSessionModal(id) {
+  if (!requireDirector()) return;
+  editingId['session-modal'] = id || null;
+  const s = id ? getById('classes', id) : { days: [], teacherId: DIRECTOR_ID };
+  document.getElementById('session-modal-title').textContent = id ? '수업 수정' : '수업 추가';
+  document.getElementById('ss-name').value = s.name || '';
+  document.getElementById('ss-name-list').innerHTML = classNames().map(n => `<option value="${esc(n)}">`).join('');
+  document.getElementById('ss-teacher').innerHTML = getAll('teachers')
+    .filter(t => t.active !== false || t.id === s.teacherId)
+    .map(t => `<option value="${t.id}">${esc(t.name)}${t.id === DIRECTOR_ID ? '' : ' (강사)'}</option>`).join('');
+  document.getElementById('ss-teacher').value = s.teacherId || DIRECTOR_ID;
+  document.getElementById('ss-days').innerHTML = WEEK_DAYS.map(d =>
+    `<label><input type="checkbox" value="${d}" ${s.days.includes(d) ? 'checked' : ''} onchange="previewSessionConflicts()"> ${d}</label>`).join('');
+  document.getElementById('ss-start').value = s.start || '';
+  document.getElementById('ss-end').value = s.end || '';
+  document.getElementById('ss-room').value = s.room || '';
+  ['ss-name','ss-teacher','ss-start','ss-end','ss-room'].forEach(i => { document.getElementById(i).onchange = previewSessionConflicts; });
+  previewSessionConflicts();
+  openModal('session-modal');
+}
+function readSessionForm() {
+  return {
+    id: editingId['session-modal'] || uid(),
+    name: document.getElementById('ss-name').value.trim(),
+    days: [...document.querySelectorAll('#ss-days input:checked')].map(i => i.value),
+    start: document.getElementById('ss-start').value,
+    end: document.getElementById('ss-end').value,
+    teacherId: document.getElementById('ss-teacher').value,
+    room: document.getElementById('ss-room').value.trim(),
+  };
+}
+function sessionConflictsWith(draft) {
+  const others = getSessions().filter(s => s.id !== draft.id);
+  // 이 수업이 관련된 중복만 골라낸다
+  return findConflicts([draft, ...others], getAll('students'))
+    .filter(c => c.detail.includes(sessionLabel(draft)));
+}
+function previewSessionConflicts() {
+  const d = readSessionForm();
+  const box = document.getElementById('ss-conflicts');
+  if (!d.name || !d.days.length || !d.start || !d.end || d.start >= d.end) { box.innerHTML = ''; return; }
+  const list = sessionConflictsWith(d);
+  box.innerHTML = list.length ? `<div style="font-size:12px;font-weight:700;color:var(--red);margin-bottom:4px">⚠ 시간이 겹칩니다</div>${conflictHtml(list)}` : '<p style="font-size:12px;color:var(--green)">✓ 겹치는 시간 없음</p>';
+}
+function saveSession() {
+  if (!requireDirector()) return;
+  const d = readSessionForm();
+  if (!d.name) { alert('반 이름을 입력하세요.'); return; }
+  if (!d.days.length) { alert('요일을 하나 이상 선택하세요.'); return; }
+  if (!d.start || !d.end || d.start >= d.end) { alert('시작·종료 시간을 확인하세요.'); return; }
+  const list = sessionConflictsWith(d);
+  if (list.length && !confirm(`⚠ 시간 중복 ${list.length}건이 있습니다.\n\n${list.map(c => `[${c.kind}] ${c.who}: ${c.detail}`).join('\n')}\n\n그래도 저장할까요?`)) return;
+  const prev = getById('classes', d.id);
+  if (!upsert('classes', d)) return;
+  // 반 이름을 바꾸면 그 반 학생들의 반 이름도 함께 바꾼다 (같은 이름의 다른 수업이 없을 때)
+  if (prev && prev.name !== d.name && !getSessions().some(s => s.name === prev.name)) {
+    const arr = getAll('students');
+    arr.forEach(s => {
+      if (s.className === prev.name) s.className = d.name;
+      if (s.extraClasses) s.extraClasses = s.extraClasses.map(c => c === prev.name ? d.name : c);
+    });
+    saveAll('students', arr);
+  }
+  closeModal('session-modal');
+  fillClassSelects();
+  applyRoleUI();
+  renderTimetable();
+}
+function deleteSession(id) {
+  if (!requireDirector()) return;
+  const s = getById('classes', id);
+  if (!s) return;
+  const lastOfName = getSessions().filter(x => x.name === s.name).length === 1;
+  const n = getAll('students').filter(st => st.status !== '퇴원' && inClass(st, s.name)).length;
+  if (lastOfName && n) { alert(`${s.name}에 재원·휴원 학생 ${n}명이 있습니다. 먼저 학생들을 다른 반으로 이동하세요.`); return; }
+  if (remove('classes', id)) { fillClassSelects(); renderTimetable(); }
+}
+
+/* === 재등록·이탈 === */
+function lastPaid(studentId) {
+  return getAll('payments').filter(p => p.studentId === studentId && p.status === '완납')
+    .sort((a, b) => (b.paidDate || b.dueDate || '').localeCompare(a.paidDate || a.dueDate || ''))[0];
+}
+function lastConsult(studentId) {
+  return getAll('consultations').filter(c => c.studentId === studentId)
+    .sort((a, b) => (b.date || '').localeCompare(a.date || ''))[0];
+}
+function renderRetentionPage() {
+  if (!isDirector()) return;
+  const q = document.getElementById('ret-search').value.toLowerCase();
+  const stF = document.getElementById('ret-status-filter').value;
+  const rnF = document.getElementById('ret-renewal-filter').value;
+  const list = getAll('students').filter(s =>
+    (!q || s.name.toLowerCase().includes(q)) &&
+    (!stF || s.status === stF) &&
+    (!rnF || ((s.renewal && s.renewal.state) || '미확인') === rnF)
+  ).sort((a, b) => ['재원','휴원','퇴원'].indexOf(a.status) - ['재원','휴원','퇴원'].indexOf(b.status) || a.name.localeCompare(b.name));
+
+  const rnBadge = { '미확인': 'badge-gray', '재등록 의사 확인': 'badge-blue', '재등록 완료': 'badge-green', '이탈 의사 확인': 'badge-orange' };
+  document.getElementById('retention-tbody').innerHTML = list.length ? list.map(s => {
+    const periods = enrollmentPeriods(s);
+    const enrolledMonths = periods.filter(p => p.status === '재원').reduce((m, p) => m + monthsBetween(p.from, p.to), 0);
+    const cur = periods[periods.length - 1];
+    const paid = lastPaid(s.id);
+    const con = lastConsult(s.id);
+    const rn = (s.renewal && s.renewal.state) || '미확인';
+    return `<tr class="${s.isSample ? 'sample-row' : ''}">
+      <td style="font-weight:700">${esc(s.name)}${sampleBadge(s)}</td>
+      <td>${classBadge(s.className)}</td>
+      <td>${statusBadge(s.status)}</td>
+      <td style="font-size:12px">최초 ${fmtDate(s.enrollDate)}<br><span class="text-muted">${periodText(cur)} · 재원 누적 약 ${enrolledMonths.toFixed(1)}개월</span></td>
+      <td style="font-size:12px">${paid ? `${fmtDate(paid.paidDate || paid.dueDate)}<br><span class="text-muted">${fmtMoney(paid.amount)}</span>` : '<span class="text-muted">기록 없음</span>'}</td>
+      <td style="font-size:12px;max-width:220px">${con ? `${fmtDate(con.date)} · ${esc(con.channel)}<br><span class="text-muted">${esc((con.summary || '').slice(0, 40))}${(con.summary || '').length > 40 ? '…' : ''}</span>` : '<span class="text-muted">기록 없음</span>'}</td>
+      <td><span class="badge ${rnBadge[rn]}">${rn}</span>${s.renewal && s.renewal.date ? `<div style="font-size:11px;color:var(--text-muted)">${fmtDate(s.renewal.date)}</div>` : ''}</td>
+      <td><button class="btn btn-sm btn-ghost" onclick="openRetentionModal('${s.id}')">이력 보기</button></td>
+    </tr>`;
+  }).join('') : '<tr><td colspan="8" class="text-muted" style="text-align:center;padding:16px">학생 없음</td></tr>';
+}
+function openRetentionModal(id) {
+  if (!requireDirector()) return;
+  const s = getById('students', id);
+  if (!s) return;
+  editingId['retention-modal'] = id;
+  document.getElementById('rt-title').innerHTML = `${esc(s.name)}${sampleBadge(s)} — 등록·상담 이력`;
+  const periods = enrollmentPeriods(s);
+  const consults = getAll('consultations').filter(c => c.studentId === id).sort((a, b) => (b.date || '').localeCompare(a.date || ''));
+  const pays = getAll('payments').filter(p => p.studentId === id).sort((a, b) => (b.dueDate || '').localeCompare(a.dueDate || '')).slice(0, 6);
+  const hist = historyOf(id).reverse();
+  document.getElementById('rt-body').innerHTML = `
+    <div class="card-title" style="font-size:13px;margin-bottom:6px">등록 기간 (상태 변경 기록 기준)</div>
+    <div style="margin-bottom:12px">${periods.map(p => `<span class="badge ${p.status==='재원'?'badge-green':p.status==='휴원'?'badge-orange':'badge-red'}" style="margin:0 4px 4px 0">${periodText(p)}</span>`).join('')}</div>
+    <div class="card-title" style="font-size:13px;margin-bottom:6px">반·상태 변경 이력</div>
+    <div style="font-size:12px;margin-bottom:12px">${hist.length ? hist.map(h => `<div style="padding:3px 0">${fmtDate(h.date)} · <strong>${esc(h.kind)}</strong> ${esc(h.from)} → ${esc(h.to)} ${h.reason ? '· ' + esc(h.reason) : ''} <span class="text-muted">(${esc(h.by)})</span></div>`).join('') : '<span class="text-muted">이력 없음</span>'}</div>
+    <div class="card-title" style="font-size:13px;margin-bottom:6px">최근 수납</div>
+    <div style="font-size:12px;margin-bottom:12px">${pays.length ? pays.map(p => `<div style="padding:3px 0">${fmtDate(p.dueDate)} · ${fmtMoney(p.amount)} · <span class="badge ${p.status==='완납'?'badge-green':'badge-red'}">${p.status}</span> ${p.paidDate ? '(' + fmtDate(p.paidDate) + ' 납부)' : ''}</div>`).join('') : '<span class="text-muted">수납 기록 없음</span>'}</div>
+    <div class="card-title" style="font-size:13px;margin-bottom:6px"><span>상담 기록 ${consults.length}건</span><button class="btn btn-sm btn-ghost" onclick="openConsultModalForStudent('${id}')">+ 상담 추가</button></div>
+    <div style="font-size:12px;max-height:200px;overflow-y:auto">${consults.length ? consults.map(c => `<div style="padding:6px 0;border-bottom:1px solid var(--border)">
+        <strong>${fmtDate(c.date)}</strong> · ${esc(c.channel)} · <span class="badge ${c.done?'badge-green':'badge-orange'}">${c.done?'완료':'팔로업'}</span><br>${esc(c.summary)}${c.followUp ? `<div class="text-muted">후속: ${esc(c.followUp)}</div>` : ''}</div>`).join('') : '<span class="text-muted">상담 기록 없음</span>'}</div>`;
+  document.getElementById('rt-renewal').value = (s.renewal && s.renewal.state) || '미확인';
+  document.getElementById('rt-note').value = (s.renewal && s.renewal.note) || '';
+  openModal('retention-modal');
+}
+function saveRenewal() {
+  if (!requireDirector()) return;
+  const arr = getAll('students');
+  const s = arr.find(x => x.id === editingId['retention-modal']);
+  if (!s) return;
+  s.renewal = { state: document.getElementById('rt-renewal').value, note: document.getElementById('rt-note').value.trim(), date: today(), by: currentUserName() };
+  if (!saveAll('students', arr)) return;
+  closeModal('retention-modal');
+  renderRetentionPage();
+}
+
+/* === CSV 가져오기 === */
+let _csvParsed = { attendance: [], grades: [] };
+
+function openCsvImportModal(e) {
+  const file = e.target.files[0];
+  if (!file) return;
+  if (!requireDirector()) { e.target.value = ''; return; }
+
+  const reader = new FileReader();
+  reader.onload = ev => {
+    // EUC-KR 대응: TextDecoder로 재시도
+    let text = ev.target.result;
+
+    // 년도 셀렉트
+    const yearSel = document.getElementById('csv-year');
+    yearSel.innerHTML = '';
+    const curYear = new Date().getFullYear();
+    for (let y = curYear; y >= curYear - 2; y--) {
+      yearSel.innerHTML += `<option value="${y}">${y}년</option>`;
+    }
+
+    // 학생 셀렉트
+    const students = getAll('students');
+    const sSel = document.getElementById('csv-student');
+    sSel.innerHTML = students.map(s => `<option value="${s.id}">${s.name} (${s.className||''})</option>`).join('');
+
+    // 파싱 & 미리보기
+    _parseCsv(text, curYear);
+    document.getElementById('csv-preview').innerHTML = _buildCsvPreview();
+
+    // 연도 변경 시 재파싱
+    yearSel.onchange = () => {
+      _parseCsv(text, Number(yearSel.value));
+      document.getElementById('csv-preview').innerHTML = _buildCsvPreview();
+    };
+
+    openModal('csv-modal');
+  };
+  reader.readAsText(file, 'EUC-KR');
+  e.target.value = '';
+}
+
+function _parseKoreanDate(str, year) {
+  // "3월3일", "3월 3일", "3월3일 " 등 → "2026-03-03"
+  str = str.trim().replace(/\s+/g, '');
+  const m = str.match(/(\d+)월(\d+)일/);
+  if (!m) return null;
+  const mon = m[1].padStart(2, '0');
+  const day = m[2].padStart(2, '0');
+  return `${year}-${mon}-${day}`;
+}
+
+function _mapHomework(raw) {
+  if (!raw || raw.trim() === '') return { status: '완료', note: '' };
+  raw = raw.trim();
+  if (raw === '숙제완료') return { status: '완료', note: '' };
+  if (raw.includes('오답다시') || raw.includes('재시')) return { status: '완료', note: raw };
+  if (raw.includes('안함') || raw.includes('미완료')) return { status: '미완료', note: raw };
+  return { status: '일부', note: raw };
+}
+
+function _parseCsv(text, year) {
+  const lines = text.split('\n').map(l => l.trim()).filter(l => l);
+  const attendance = [];
+  const grades = [];
+
+  // 헤더 스킵
+  for (let i = 1; i < lines.length; i++) {
+    // 쉼표 분리 (따옴표 안 쉼표 보호)
+    const cols = _splitCsvLine(lines[i]);
+    const dateStr = cols[0];
+    const date = _parseKoreanDate(dateStr, year);
+    if (!date) continue;
+
+    const attendRaw = (cols[1] || '').trim();
+    const hwRaw = cols[2] || '';
+    const vocabCorrect = cols[3];
+    const vocabTotal = cols[4];
+    const retake = (cols[6] || '').trim();
+    const unitScore = cols[7];
+    const lifeCorrect = cols[8];
+    const lifeTotal = cols[9];
+
+    // 출결
+    let status = '출석';
+    if (attendRaw.includes('결석')) status = '결석';
+    else if (attendRaw.includes('지각')) status = '지각';
+
+    const hw = _mapHomework(hwRaw);
+    attendance.push({ date, status, homework: hw.status, materials: '준비', note: hw.note });
+
+    // 단어시험
+    const vCorr = Number(vocabCorrect);
+    const vTot = Number(vocabTotal);
+    if (vocabTotal && !isNaN(vTot) && vTot > 0) {
+      const score = Math.round((vCorr / vTot) * 100);
+      grades.push({
+        date, type: '단어시험',
+        total: vTot, correct: vCorr, score,
+        percentile: null,
+        currentBook: '', currentUnit: '',
+        note: retake ? `재시험: ${retake}` : ''
+      });
+    }
+
+    // unit test
+    const uScore = Number(unitScore);
+    if (unitScore && unitScore.trim() !== '' && !isNaN(uScore)) {
+      grades.push({
+        date, type: '단원평가',
+        total: null, correct: null, score: uScore,
+        percentile: null, currentBook: '', currentUnit: '', note: ''
+      });
+    }
+
+    // 생활영어
+    const lCorr = Number(lifeCorrect);
+    const lTot = Number(lifeTotal);
+    if (lifeTotal && !isNaN(lTot) && lTot > 0) {
+      const score = Math.round((lCorr / lTot) * 100);
+      grades.push({
+        date, type: '기타',
+        total: lTot, correct: lCorr, score,
+        percentile: null, currentBook: '생활영어', currentUnit: '말하기/문장쓰기', note: ''
+      });
+    }
+  }
+
+  _csvParsed = { attendance, grades };
+}
+
+function _splitCsvLine(line) {
+  const result = [];
+  let cur = '';
+  let inQuote = false;
+  for (let i = 0; i < line.length; i++) {
+    const ch = line[i];
+    if (ch === '"') { inQuote = !inQuote; continue; }
+    if (ch === ',' && !inQuote) { result.push(cur); cur = ''; continue; }
+    cur += ch;
+  }
+  result.push(cur);
+  return result;
+}
+
+function _buildCsvPreview() {
+  const { attendance, grades } = _csvParsed;
+  const attendCount = { '출석': 0, '지각': 0, '결석': 0 };
+  attendance.forEach(a => { if (attendCount[a.status] !== undefined) attendCount[a.status]++; });
+  const vocabCount = grades.filter(g => g.type === '단어시험').length;
+  const unitCount  = grades.filter(g => g.type === '단원평가').length;
+  const lifeCount  = grades.filter(g => g.type === '기타').length;
+
+  return `
+    <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:8px">
+      <div style="background:#d4edda;border-radius:6px;padding:8px;text-align:center">
+        <div style="font-size:18px;font-weight:700;color:#155724">${attendance.length}</div>
+        <div style="font-size:11px;color:#155724">출결 기록</div>
+        <div style="font-size:10px;color:#555;margin-top:2px">출석 ${attendCount['출석']} / 지각 ${attendCount['지각']} / 결석 ${attendCount['결석']}</div>
+      </div>
+      <div style="background:#d1ecf1;border-radius:6px;padding:8px;text-align:center">
+        <div style="font-size:18px;font-weight:700;color:#0c5460">${grades.length}</div>
+        <div style="font-size:11px;color:#0c5460">성적 기록</div>
+        <div style="font-size:10px;color:#555;margin-top:2px">단어 ${vocabCount} / 단원평가 ${unitCount} / 생활영어 ${lifeCount}</div>
+      </div>
+      <div style="background:#e8d5f0;border-radius:6px;padding:8px;text-align:center">
+        <div style="font-size:18px;font-weight:700;color:#6B1F68">${attendance.length > 0 ? attendance[0].date + ' ~' : '—'}</div>
+        <div style="font-size:11px;color:#6B1F68">기간</div>
+        <div style="font-size:10px;color:#555;margin-top:2px">${attendance.length > 0 ? attendance[attendance.length-1].date : ''}</div>
+      </div>
+    </div>
+    ${attendance.length === 0 ? '<p style="color:var(--red)">날짜를 인식하지 못했습니다. 연도를 확인해 주세요.</p>' : ''}
+  `;
+}
+
+function confirmCsvImport() {
+  const studentId = document.getElementById('csv-student').value;
+  if (!studentId) { alert('학생을 선택하세요.'); return; }
+  const { attendance, grades } = _csvParsed;
+  if (attendance.length === 0 && grades.length === 0) { alert('가져올 데이터가 없습니다.'); return; }
+
+  // 출결 저장
+  const existAttend = getAll('attendance');
+  attendance.forEach(a => {
+    const idx = existAttend.findIndex(x => x.studentId === studentId && x.date === a.date);
+    const rec = { ...a, id: idx >= 0 ? existAttend[idx].id : uid(), studentId };
+    if (idx >= 0) existAttend[idx] = rec; else existAttend.push(rec);
+  });
+  saveAll('attendance', existAttend);
+
+  // 성적 저장
+  const existGrades = getAll('grades');
+  grades.forEach(g => {
+    // 같은 날짜+유형 기록이 있으면 덮어씀
+    const idx = existGrades.findIndex(x => x.studentId === studentId && x.date === g.date && x.type === g.type);
+    const rec = { ...g, id: idx >= 0 ? existGrades[idx].id : uid(), studentId };
+    if (idx >= 0) existGrades[idx] = rec; else existGrades.push(rec);
+  });
+  saveAll('grades', existGrades);
+
+  closeModal('csv-modal');
+  const s = getById('students', studentId);
+  alert(`✅ 가져오기 완료!\n출결 ${attendance.length}건 · 성적 ${grades.length}건\n→ ${s ? s.name : ''} 학생 데이터에 저장됐습니다.`);
+  renderCurrentPage();
+}
+
+/* === 원장 코멘트 자동 생성 엔진 === */
+function generatePrincipalComment(student, attendList, gradeList, periodLabel) {
+  const name = student.name;
+  const totalDays = attendList.length;
+  if (totalDays === 0) return '';
+
+  // ── 출결 분석 ──
+  const presentCount = attendList.filter(a => a.status === '출석').length;
+  const lateCount    = attendList.filter(a => a.status === '지각').length;
+  const absentList   = attendList.filter(a => a.status === '결석');
+  const absentCount  = absentList.length;
+  const attendRate   = Math.round((presentCount / totalDays) * 100);
+
+  // ── 숙제 분석 ──
+  const hwDone    = attendList.filter(a => a.homework === '완료').length;
+  const hwPartial = attendList.filter(a => a.homework === '일부').length;
+  const hwMiss    = attendList.filter(a => a.homework === '미완료').length;
+  const hwTotal   = attendList.filter(a => a.homework).length;
+  const hwRate    = hwTotal > 0 ? Math.round((hwDone / hwTotal) * 100) : 100;
+  // 숙제 미완료 사유 수집 (note에서)
+  const hwMissNotes = attendList.filter(a => (a.homework === '미완료' || a.homework === '일부') && a.note)
+    .map(a => a.note.replace(/숙제완료/g,'').trim()).filter(n=>n).slice(0,2);
+
+  // ── 단어시험 분석 ──
+  const vocabGrades = gradeList.filter(g => g.type === '단어시험' && g.score != null)
+    .sort((a,b) => a.date.localeCompare(b.date));
+  const vocabAvg = vocabGrades.length
+    ? Math.round(vocabGrades.reduce((s,g) => s + g.score, 0) / vocabGrades.length)
+    : null;
+
+  // 연속 100% 탐지
+  let maxConsec100 = 0, curConsec = 0, consecEndDate = '';
+  vocabGrades.forEach(g => {
+    if (g.score === 100) {
+      curConsec++;
+      if (curConsec > maxConsec100) { maxConsec100 = curConsec; consecEndDate = g.date; }
+    } else { curConsec = 0; }
+  });
+  // 점수 추이 (첫 절반 vs 후 절반)
+  let vocabTrend = '';
+  if (vocabGrades.length >= 4) {
+    const half = Math.floor(vocabGrades.length / 2);
+    const earlyAvg = vocabGrades.slice(0, half).reduce((s,g)=>s+g.score,0)/half;
+    const lateAvg  = vocabGrades.slice(half).reduce((s,g)=>s+g.score,0)/(vocabGrades.length-half);
+    if (lateAvg - earlyAvg >= 5) vocabTrend = '상승';
+    else if (earlyAvg - lateAvg >= 5) vocabTrend = '하락';
+    else vocabTrend = '안정';
+  }
+
+  // ── 단원평가 분석 ──
+  const unitGrades = gradeList.filter(g => g.type === '단원평가' && g.score != null);
+  const unitAvg = unitGrades.length
+    ? Math.round(unitGrades.reduce((s,g)=>s+g.score,0)/unitGrades.length)
+    : null;
+
+  // ── 기타 메모 수집 (note에 특이 기록) ──
+  const specialNotes = gradeList
+    .filter(g => g.note && !g.note.match(/^재시|^누적|^통과|^2차/))
+    .map(g => `${fmtDate(g.date)} ${g.note}`)
+    .slice(0, 2);
+
+  // ── 결석 사유 문구 ──
+  const absentDesc = absentList.map(a => a.absentReason || '').filter(r=>r);
+
+  // ────────────────────────────────────────────
+  // ① 잘하고 있어요
+  // ────────────────────────────────────────────
+  let para1 = `${name}은(는) ${periodLabel} 동안 `;
+
+  // 출결
+  if (absentCount === 0 && lateCount === 0) {
+    para1 += `총 ${totalDays}회 수업에 한 번도 빠짐없이 모두 출석했어요.`;
+  } else if (absentCount > 0) {
+    const reasonStr = absentDesc.length ? `(${absentDesc.join(', ')})` : '';
+    para1 += `총 ${totalDays}회 수업 중 ${absentCount}회 결석${reasonStr}을 제외하고 모두 출석했어요.`;
+    if (lateCount > 0) para1 += ` 지각은 ${lateCount}회 있었습니다.`;
+  } else {
+    para1 += `총 ${totalDays}회 수업 중 지각 ${lateCount}회를 제외하고 모두 출석했어요.`;
+  }
+
+  // 숙제
+  if (hwRate === 100) {
+    para1 += ` 과제도 매번 빠짐없이 완료해 왔어요.`;
+  } else if (hwRate >= 85) {
+    para1 += ` 과제 완료율은 ${hwRate}%로 전반적으로 잘 해왔어요.`;
+    if (hwMissNotes.length) para1 += ` 다만 ${hwMissNotes.join(', ')} 부분은 다음에 좀 더 신경 써주면 좋겠어요.`;
+  } else {
+    para1 += ` 과제 완료율이 ${hwRate}%로, 꾸준한 습관 형성이 필요한 시기입니다.`;
+  }
+
+  // 단어시험
+  if (vocabAvg !== null) {
+    if (maxConsec100 >= 3) {
+      const mStr = fmtDate(consecEndDate).slice(0,4) + '/' + fmtDate(consecEndDate).slice(5);
+      para1 += ` 단어 시험은 평균 ${vocabAvg}점을 유지했고, ${maxConsec100}주 연속 100%를 달성하는 멋진 기록도 남겼어요.`;
+    } else if (maxConsec100 >= 2) {
+      para1 += ` 단어 시험 평균은 ${vocabAvg}점이며, 2주 연속 100%를 기록하는 등 좋은 흐름을 보여줬어요.`;
+    } else if (vocabTrend === '상승') {
+      para1 += ` 단어 시험은 기간 초반보다 후반으로 갈수록 점수가 꾸준히 올라 평균 ${vocabAvg}점을 달성했어요.`;
+    } else {
+      para1 += ` 단어 시험은 평균 ${vocabAvg}점으로 ${vocabAvg >= 90 ? '높은 수준을 잘 유지했어요.' : '안정적으로 임했어요.'}`;
+    }
+  }
+
+  // 단원평가
+  if (unitAvg !== null) {
+    para1 += ` Unit test는 평균 ${unitAvg}점을 기록했습니다.`;
+  }
+
+  // 특이 메모
+  if (specialNotes.length) {
+    para1 += ` 특히 ${specialNotes.join(', ')} 기록이 인상적이었어요.`;
+  }
+
+  // ────────────────────────────────────────────
+  // ② 가장 큰 강점
+  // ────────────────────────────────────────────
+  let strength = '';
+  if (hwRate === 100 && (vocabAvg === null || vocabAvg >= 90)) {
+    strength = `가장 인상적인 점은 ${name}이(가) 스스로 학습 루틴을 잘 만들어 간다는 것이에요. 누가 시키지 않아도 과제를 챙기고, 단어 공부도 꾸준히 이어가고 있어요. 이 자기주도적인 태도가 앞으로 영어 실력을 쌓아가는 데 가장 큰 자산이 될 거예요.`;
+  } else if (maxConsec100 >= 2) {
+    strength = `${name}의 가장 큰 강점은 단어 암기력과 집중력이에요. 반복 학습을 통해 틀린 단어를 끝까지 잡아내는 끈기가 있어요. 이 힘을 바탕으로 읽기 지문과 말하기 문장까지 연결하면 한 단계 더 성장할 수 있을 거예요.`;
+  } else if (vocabTrend === '상승') {
+    strength = `이번 기간 ${name}에게서 가장 눈에 띈 것은 꾸준한 성장세예요. 처음보다 후반부로 갈수록 점수가 올라가는 것을 보면, 배운 것을 흡수하고 발전시키는 능력이 있다는 걸 알 수 있어요. 이 흐름을 이어가면 다음 기간에 더 좋은 결과를 기대할 수 있어요.`;
+  } else if (absentCount === 0) {
+    strength = `${name}의 가장 큰 강점은 꾸준함이에요. 한 번도 빠지지 않고 수업에 참여한다는 것 자체가 영어를 대하는 태도를 잘 보여줘요. 이 성실함이 쌓이면 반드시 실력으로 나타납니다.`;
+  } else {
+    strength = `${name}은(는) 수업 시간에 집중하는 태도가 좋아요. 부족한 부분을 스스로 인식하고 다음 수업에서 보완하려는 모습이 보여, 앞으로의 성장이 기대됩니다.`;
+  }
+
+  // ────────────────────────────────────────────
+  // ③ 가정에서 함께 해주세요
+  // ────────────────────────────────────────────
+  let homeReq = '';
+  if (hwMiss > 0 || hwPartial > 1) {
+    homeReq = `${name}이(가) 집에서 과제를 마무리하는 습관을 함께 잡아주시면 좋겠어요. 하루 10~15분, 정해진 시간에 앉아서 단어 카드를 보거나 그날 배운 표현을 한 번 읽어보는 것만으로도 큰 도움이 됩니다. 학원에서 배운 것을 가정에서 한 번 더 확인해 주시면 ${name}의 자신감이 훨씬 빠르게 성장할 거예요.`;
+  } else {
+    homeReq = `${name}이(가) 잘 만들어 온 '스스로 공부하는 습관'을 가정에서도 이어갈 수 있도록 응원해 주세요. 하루 10분, 그날 배운 단어를 가족에게 한 문장씩 말해보게 하는 것만으로도 큰 힘이 됩니다. 지금의 성실함이라면 앞으로의 성장이 정말 기대됩니다. 함께 응원하겠습니다!`;
+  }
+
+  return `● 잘하고 있어요\n${para1}\n\n● ${name}의 가장 큰 강점\n${strength}\n\n● 가정에서 함께 해주세요\n${homeReq}`;
+}
+
+/* === 리포트 === */
+function openReportModal() {
+  const sel1 = document.getElementById('report-start');
+  const sel2 = document.getElementById('report-end');
+  sel1.innerHTML = sel2.innerHTML = '';
+  for (let i = 11; i >= 0; i--) {
+    const d = new Date(); d.setMonth(d.getMonth() - i);
+    const val = d.toISOString().slice(0, 7);
+    const label = val.replace('-', '년 ') + '월';
+    sel1.innerHTML += `<option value="${val}">${label}</option>`;
+    sel2.innerHTML += `<option value="${val}">${label}</option>`;
+  }
+  // 기본값: 직전 2개월
+  const prev2 = new Date(); prev2.setMonth(prev2.getMonth() - 2);
+  const prev1 = new Date(); prev1.setMonth(prev1.getMonth() - 1);
+  sel1.value = prev2.toISOString().slice(0, 7);
+  sel2.value = prev1.toISOString().slice(0, 7);
+  openModal('report-modal');
+}
+
+function generateReport() {
+  const s = getById('students', currentDetailId);
+  if (!s) return;
+  const startM = document.getElementById('report-start').value;
+  const endM   = document.getElementById('report-end').value;
+  if (startM > endM) { alert('시작 월이 종료 월보다 늦습니다.'); return; }
+
+  const allAttend = getAll('attendance')
+    .filter(a => a.studentId === s.id && a.date >= startM && a.date <= endM + '-31')
+    .sort((a, b) => a.date.localeCompare(b.date));
+
+  const allGrades = getAll('grades')
+    .filter(g => g.studentId === s.id && g.date >= startM && g.date <= endM + '-31')
+    .sort((a, b) => a.date.localeCompare(b.date));
+
+  const attendCount = { '출석': 0, '지각': 0, '결석': 0 };
+  allAttend.forEach(a => { if (attendCount[a.status] !== undefined) attendCount[a.status]++; });
+  const lessonAttend = allAttend.filter(a => a.status !== '휴원');   // 휴원일은 수업일수에서 제외
+  const total = lessonAttend.length;
+  const attendRate = total ? Math.round((attendCount['출석'] / total) * 100) : 0;
+
+  const absentRows = allAttend.filter(a => a.status === '결석' && a.absentReason);
+
+  const periodLabel = startM === endM
+    ? startM.replace('-', '년 ') + '월'
+    : startM.replace('-', '년 ') + '월 ~ ' + endM.replace('-', '년 ') + '월';
+
+  const attendTableRows = allAttend.map(a => `
+    <tr>
+      <td>${a.date.replace(/-/g,'.')}</td>
+      <td class="center"><span class="badge-r ${a.status==='출석'?'g':a.status==='지각'?'o':'r'}">${a.status}</span></td>
+      <td class="center"><span class="badge-r ${a.homework==='완료'?'g':a.homework==='일부'?'o':'r'}">${a.homework||'—'}</span></td>
+      <td class="center"><span class="badge-r ${a.materials==='준비'?'g':'r'}">${a.materials||'—'}</span></td>
+      <td style="color:#666;font-size:11px">${a.absentReason||a.note||''}</td>
+    </tr>`).join('');
+
+  const gradeTableRows = allGrades.length ? allGrades.map(g => `
+    <tr>
+      <td>${g.date.replace(/-/g,'.')}</td>
+      <td>${g.type||'—'}</td>
+      <td class="center">${g.total!=null?g.total:'—'}</td>
+      <td class="center">${g.correct!=null?g.correct:'—'}</td>
+      <td class="center score">${g.score!=null?g.score+'점':'—'}</td>
+      <td style="color:#666;font-size:11px">${g.currentBook||''} ${g.currentUnit||''}</td>
+    </tr>`).join('')
+    : '<tr><td colspan="6" style="text-align:center;color:#999;padding:8px">성적 기록 없음</td></tr>';
+
+  // 자동 코멘트 생성
+  const autoComment = generatePrincipalComment(s, lessonAttend, allGrades, periodLabel);
+
+  const html = `<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<title>${s.name} 학생 리포트 — ${periodLabel}</title>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: 'Noto Sans KR', sans-serif;
+    font-size: 12px;
+    color: #2D2D2D;
+    background: #fff;
+    padding: 0;
+  }
+
+  .page {
+    width: 210mm;
+    min-height: 297mm;
+    margin: 0 auto;
+    padding: 14mm 16mm 12mm;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+
+  /* 헤더 */
+  .report-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    border-bottom: 3px solid #92308D;
+    padding-bottom: 8px;
+  }
+  .report-header .brand { font-size: 18px; font-weight: 700; color: #92308D; }
+  .report-header .brand span { font-size: 11px; font-weight: 400; color: #888; display: block; margin-top: 1px; }
+  .report-header .report-title { text-align: right; }
+  .report-header .report-title h1 { font-size: 15px; font-weight: 700; color: #2D2D2D; }
+  .report-header .report-title p { font-size: 11px; color: #888; margin-top: 2px; }
+
+  /* 학생 정보 */
+  .student-info {
+    background: #F5F0F7;
+    border-radius: 8px;
+    padding: 9px 14px;
+    display: flex;
+    gap: 28px;
+    align-items: center;
+  }
+  .student-info .sname { font-size: 16px; font-weight: 700; color: #92308D; }
+  .student-info .smeta { font-size: 11px; color: #666; margin-top: 2px; }
+  .student-info .stat-chips { display: flex; gap: 10px; margin-left: auto; }
+  .chip { background: #fff; border: 1px solid #ddd; border-radius: 20px; padding: 4px 12px; font-size: 11px; font-weight: 600; text-align: center; }
+  .chip .val { font-size: 16px; font-weight: 700; display: block; color: #92308D; }
+
+  /* 섹션 타이틀 */
+  .section-title {
+    font-size: 12px;
+    font-weight: 700;
+    color: #92308D;
+    margin-bottom: 5px;
+    letter-spacing: 0.02em;
+  }
+
+  /* 테이블 */
+  table { width: 100%; border-collapse: collapse; font-size: 11px; }
+  th { background: #92308D; color: #fff; padding: 5px 7px; text-align: center; font-weight: 600; }
+  th:first-child { text-align: left; }
+  td { padding: 4px 7px; border-bottom: 1px solid #eee; vertical-align: middle; }
+  td.center { text-align: center; }
+  td.score { font-weight: 700; color: #92308D; }
+  tr:last-child td { border-bottom: none; }
+  tr:nth-child(even) td { background: #faf8fc; }
+
+  .badge-r {
+    display: inline-block;
+    padding: 1px 7px;
+    border-radius: 10px;
+    font-size: 10px;
+    font-weight: 600;
+  }
+  .badge-r.g { background: #d4edda; color: #155724; }
+  .badge-r.o { background: #fff3cd; color: #856404; }
+  .badge-r.r { background: #f8d7da; color: #721c24; }
+
+  /* 코멘트·피드백 영역 */
+  .comment-box {
+    border: 1px solid #ddd;
+    border-radius: 6px;
+    padding: 8px 10px;
+    min-height: 52px;
+    font-size: 12px;
+    line-height: 1.7;
+    color: #2D2D2D;
+    outline: none;
+    width: 100%;
+    resize: none;
+    font-family: 'Noto Sans KR', sans-serif;
+  }
+  .comment-box:focus { border-color: #92308D; }
+
+  .feedback-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr;
+    gap: 8px;
+  }
+  .feedback-item .fb-label {
+    font-size: 10px;
+    font-weight: 700;
+    color: #92308D;
+    margin-bottom: 4px;
+  }
+  .fb-icon { font-size: 14px; margin-right: 3px; }
+
+  .parent-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 8px;
+  }
+
+  .sign-box {
+    border: 1px solid #ddd;
+    border-radius: 6px;
+    height: 44px;
+  }
+
+  /* 수기 작성 공란 */
+  .write-box {
+    border: 1px solid #e0e0e0;
+    border-radius: 6px;
+    height: 68px;
+    background: #fafafa;
+    background-image: repeating-linear-gradient(
+      to bottom,
+      transparent,
+      transparent 21px,
+      #e8e8e8 21px,
+      #e8e8e8 22px
+    );
+    background-position: 0 10px;
+  }
+
+  /* 하단 */
+  .report-footer {
+    margin-top: auto;
+    text-align: center;
+    font-size: 10px;
+    color: #bbb;
+    border-top: 1px solid #eee;
+    padding-top: 6px;
+  }
+
+  .no-print-bar {
+    position: fixed;
+    top: 0; left: 0; right: 0;
+    background: #92308D;
+    color: #fff;
+    padding: 10px 20px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    font-size: 13px;
+    font-family: 'Noto Sans KR', sans-serif;
+    z-index: 999;
+  }
+  .no-print-bar button {
+    background: #fff;
+    color: #92308D;
+    border: none;
+    border-radius: 6px;
+    padding: 7px 18px;
+    font-size: 13px;
+    font-weight: 700;
+    cursor: pointer;
+    font-family: 'Noto Sans KR', sans-serif;
+  }
+
+  @media print {
+    .no-print-bar { display: none; }
+    body { padding: 0; }
+    .page { margin: 0; padding: 10mm 14mm; }
+    .comment-box { border: 1px solid #ccc; }
+  }
+</style>
+</head>
+<body>
+
+<div class="no-print-bar">
+  <span>📄 ${s.name} 학생 리포트 — ${periodLabel} &nbsp; | &nbsp; 원장 코멘트와 학생 피드백을 입력한 후 PDF로 저장하세요.</span>
+  <button onclick="window.print()">🖨 PDF 저장 / 인쇄</button>
+</div>
+
+<div class="page" style="margin-top:44px">
+
+  <!-- 헤더 -->
+  <div class="report-header">
+    <div class="brand">씬잉글리쉬 스튜디오<span>Ssiny English Studio · 부산 연제구</span></div>
+    <div class="report-title">
+      <h1>학생 성장 리포트</h1>
+      <p>${periodLabel} &nbsp;|&nbsp; 발행일: ${today()}</p>
+    </div>
+  </div>
+
+  <!-- 학생 정보 -->
+  <div class="student-info">
+    <div>
+      <div class="sname">${s.name}</div>
+      <div class="smeta">${s.className||''} &nbsp;·&nbsp; ${s.school||''} ${s.grade||''}</div>
+    </div>
+    <div class="stat-chips">
+      <div class="chip"><span class="val">${total}회</span>수업일수</div>
+      <div class="chip"><span class="val" style="color:#27ae60">${attendCount['출석']}회</span>출석</div>
+      <div class="chip"><span class="val" style="color:#e67e22">${attendCount['지각']}회</span>지각</div>
+      <div class="chip"><span class="val" style="color:#e74c3c">${attendCount['결석']}회</span>결석</div>
+      <div class="chip"><span class="val">${attendRate}%</span>출석률</div>
+    </div>
+  </div>
+
+  <!-- 출결 기록 -->
+  ${allAttend.length ? `
+  <div>
+    <div class="section-title">출결 기록</div>
+    <table>
+      <thead><tr><th>날짜</th><th>출결</th><th>숙제</th><th>준비물</th><th>비고</th></tr></thead>
+      <tbody>${attendTableRows}</tbody>
+    </table>
+  </div>` : ''}
+
+  <!-- 성적 기록 -->
+  <div>
+    <div class="section-title">성적 기록</div>
+    <table>
+      <thead><tr><th>날짜</th><th>유형</th><th>전체</th><th>맞은수</th><th>점수</th><th>교재 / 범위</th></tr></thead>
+      <tbody>${gradeTableRows}</tbody>
+    </table>
+  </div>
+
+  <!-- 원장 코멘트 (자동 초안 + 수정 가능) -->
+  <div>
+    <div class="section-title" style="display:flex;align-items:center;justify-content:space-between">
+      <span>✏ SSINY 코치의 코멘트</span>
+      <span style="font-size:10px;color:#aaa;font-weight:400">초안이 자동 작성되었습니다 — 자유롭게 수정하세요</span>
+    </div>
+    <textarea class="comment-box" id="principal-comment" rows="8">${autoComment.replace(/</g,'&lt;').replace(/>/g,'&gt;')}</textarea>
+  </div>
+
+  <!-- 학생 자기 피드백 (수기 공란) -->
+  <div>
+    <div class="section-title">🌱 학생 자기 피드백</div>
+    <div class="feedback-grid">
+      <div class="feedback-item">
+        <div class="fb-label"><span class="fb-icon">⭐</span>이번 기간 나의 성장은?</div>
+        <div class="write-box"></div>
+      </div>
+      <div class="feedback-item">
+        <div class="fb-label"><span class="fb-icon">💡</span>기억에 남는 수업</div>
+        <div class="write-box"></div>
+      </div>
+      <div class="feedback-item">
+        <div class="fb-label"><span class="fb-icon">🎯</span>다음 목표 · 하고 싶은 것</div>
+        <div class="write-box"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 부모님 (수기 공란) -->
+  <div>
+    <div class="section-title">👨‍👩‍👧 부모님 코멘트 및 확인</div>
+    <div class="parent-row">
+      <div>
+        <div style="font-size:10px;color:#888;margin-bottom:4px">부모님 코멘트</div>
+        <div class="write-box" style="height:52px"></div>
+      </div>
+      <div>
+        <div style="font-size:10px;color:#888;margin-bottom:4px">부모님 확인 서명</div>
+        <div class="sign-box"></div>
+        <div style="font-size:10px;color:#aaa;margin-top:4px;text-align:right">확인일: &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;년 &nbsp;&nbsp;&nbsp;월 &nbsp;&nbsp;&nbsp;일</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 푸터 -->
+  <div class="report-footer">
+    씬잉글리쉬 스튜디오 · 부산시 연제구 중앙대로 1235번길 10-8 · 010-8070-4722
+  </div>
+
+</div><!-- /page -->
+</body>
+</html>`;
+
+  closeModal('report-modal');
+  const win = window.open('', '_blank');
+  win.document.write(html);
+  win.document.close();
+}
+
+/* === 데일리 알림장 === */
+
+function toKoreanTime(hhmm) {
+  if (!hhmm) return '';
+  const [h, m] = hhmm.trim().split(':').map(Number);
+  return `${h}시 ${m === 0 ? '정각' : m + '분'}`;
+}
+
+function toKoreanDate(dateStr) {
+  // "2026-07-02" → "7월 2일"
+  const d = new Date(dateStr + 'T00:00:00');
+  return `${d.getMonth()+1}월 ${d.getDate()}일`;
+}
+
+// 숙제 항목 저장소 (임시 — 날짜+반 키로 메모리 캐시)
+const _hwCache = {};
+
+function renderDailyPage() {
+  const dateEl = document.getElementById('daily-date');
+  if (!dateEl.value) dateEl.value = today();
+  const date = dateEl.value;
+  const dayKo = getDayKo(date);
+
+  // 이 날 수업 있는 반 목록 (반 편성 기준, 강사는 담당 반만)
+  const classesForDay = [...new Set(sessionsOn(dayKo).map(t => t.name))];
+
+  const students = scopedStudents().filter(s => s.status === '재원');
+  const container = document.getElementById('daily-classes');
+
+  if (classesForDay.length === 0) {
+    container.innerHTML = `<div class="card" style="text-align:center;color:var(--text-muted);padding:32px">
+      ${date} (${dayKo}요일)은 수업이 없는 날입니다.</div>`;
+    return;
+  }
+
+  container.innerHTML = classesForDay.map(className => {
+    const classStudents = students.filter(s => inClass(s, className));
+    if (classStudents.length === 0) return '';
+
+    const startTime = startTimeFor(className, dayKo);
+    const cacheKey = `${date}_${className}`;
+    const savedHw = _hwCache[cacheKey] || localStorage.getItem(`ssiny_dailyhw_${cacheKey}`) || '';
+
+    return `
+      <div class="daily-class-block">
+        <div class="daily-class-header">
+          <div class="class-name">${className}</div>
+          <div class="class-time">${dayKo}요일 ${startTime ? toKoreanTime(startTime) : ''}</div>
+        </div>
+        <div class="daily-hw-area">
+          <label>📚 오늘 숙제</label>
+          <textarea id="hw-${cacheKey}" placeholder="예) 원아워&#10;단어장&#10;핍앤포지 5, 7쪽 문장 쓰기"
+            oninput="saveHwCache('${cacheKey}');refreshClassReports('${cacheKey}','${date}','${className}')"
+          >${savedHw}</textarea>
+        </div>
+        <div class="daily-student-list" id="student-list-${cacheKey}">
+          ${classStudents.map(s => buildStudentDailyCard(s, date, className, startTime, savedHw)).join('')}
+        </div>
+      </div>`;
+  }).join('');
+}
+
+function saveHwCache(key) {
+  const val = document.getElementById('hw-' + key)?.value || '';
+  _hwCache[key] = val;
+  localStorage.setItem('ssiny_dailyhw_' + key, val);
+}
+
+function refreshClassReports(cacheKey, date, className) {
+  const hw = document.getElementById('hw-' + cacheKey)?.value || '';
+  const dayKo = getDayKo(date);
+  const startTime = startTimeFor(className, dayKo);
+  const students = scopedStudents().filter(s => s.status === '재원' && inClass(s, className));
+  const listEl = document.getElementById('student-list-' + cacheKey);
+  if (listEl) listEl.innerHTML = students.map(s => buildStudentDailyCard(s, date, className, startTime, hw)).join('');
+}
+
+function buildStudentDailyCard(student, date, className, startTime, hwText) {
+  const attRecord  = getAll('attendance').find(a => a.studentId === student.id && a.date === date);
+  const gradeRecords = getAll('grades').filter(g => g.studentId === student.id && g.date === date);
+
+  const attStatus = attRecord?.status   || '—';
+  const hwStatus  = attRecord?.homework || '—';
+  const attNote   = attRecord?.note     || '';
+
+  const md = generateDailyMD({ student, date, className, startTime, attStatus, hwStatus, attNote, gradeRecords, hwText });
+  const safeId = student.id.replace(/[^a-z0-9]/gi, '');
+
+  const attBadge = attStatus === '출석' ? 'badge-green' : attStatus === '지각' ? 'badge-orange' : attStatus === '결석' ? 'badge-red' : 'badge-gray';
+  const hwBadge  = hwStatus === '완료' ? 'badge-green' : hwStatus === '미완료' ? 'badge-red' : hwStatus === '일부' ? 'badge-orange' : 'badge-gray';
+
+  const gradeBadges = gradeRecords.length
+    ? gradeRecords.map(g => {
+        const label = g.total != null && g.correct != null
+          ? `${g.type} ${g.correct}/${g.total} (${g.score}점)`
+          : `${g.type} ${g.score}점`;
+        return `<span class="badge badge-blue">${label}</span>`;
+      }).join('')
+    : '<span class="badge badge-gray" style="opacity:0.5">시험 없음</span>';
+
+  return `
+    <div class="daily-student-card">
+      <div class="daily-student-top">
+        <span class="s-name">${student.name}</span>
+        <span class="badge ${attBadge}">${attStatus}</span>
+        <span class="badge ${hwBadge}">숙제 ${hwStatus}</span>
+        ${gradeBadges}
+        ${attNote ? `<span style="font-size:11px;color:var(--text-muted)">${attNote}</span>` : ''}
+      </div>
+      <div class="daily-preview" id="preview-${safeId}">${escapeHtml(md)}</div>
+      <div class="daily-copy-btn">
+        <button class="btn btn-sm btn-ghost" id="copybtn-${safeId}" onclick="copyDailyReport('${safeId}')">
+          📋 카톡용 복사
+        </button>
+      </div>
+    </div>`;
+}
+
+function generateDailyMD({ student, date, className, startTime, attStatus, hwStatus, attNote, gradeRecords, hwText }) {
+  const dateKo = toKoreanDate(date);
+  const timeKo = startTime ? toKoreanTime(startTime) : '';
+
+  const hwLines = (hwText || '').split('\n')
+    .map(l => l.trim()).filter(l => l)
+    .map((l, i) => `${i + 1}. ${l}`)
+    .join('\n');
+
+  const hwDisplay = hwStatus === '완료' ? '숙제완료'
+    : hwStatus === '미완료' ? '숙제미완료'
+    : hwStatus === '일부' ? '숙제일부완료'
+    : hwStatus;
+
+  // 시험 결과 줄 생성 (종류별로 한 줄씩)
+  const gradeLines = (gradeRecords && gradeRecords.length)
+    ? gradeRecords.map(g => {
+        if (g.total != null && g.correct != null) {
+          return `✔ ${g.type} :    ${g.correct}/${g.total} (${g.score}점)`;
+        }
+        return `✔ ${g.type} :    ${g.score}점`;
+      }).join('\n')
+    : '✔ 시험 :    -';
+
+  let md = `[씬잉글리쉬- 일일 알림장- ${className}]
+📅 ${dateKo}  ${timeKo}
+✔ 출결 : ${attStatus}${attNote ? ` (${attNote})` : ''}
+✔ 숙제 여부: ${hwDisplay}
+${gradeLines}`;
+
+  if (hwLines) md += `\n${hwLines}`;
+
+  return md;
+}
+
+function escapeHtml(str) {
+  return str.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+}
+
+function copyDailyReport(safeId) {
+  const el = document.getElementById('preview-' + safeId);
+  if (!el) return;
+  const text = el.innerText || el.textContent;
+  navigator.clipboard.writeText(text).then(() => {
+    const btn = document.getElementById('copybtn-' + safeId);
+    if (btn) {
+      const orig = btn.textContent;
+      btn.textContent = '✅ 복사됨!';
+      btn.classList.add('copy-success');
+      setTimeout(() => { btn.textContent = orig; btn.classList.remove('copy-success'); }, 2000);
+    }
+  }).catch(() => {
+    // 폴백: 선택 후 복사
+    const range = document.createRange();
+    range.selectNodeContents(el);
+    window.getSelection().removeAllRanges();
+    window.getSelection().addRange(range);
+    document.execCommand('copy');
+    window.getSelection().removeAllRanges();
+  });
+}
+
+/* === 초기화 === */
+function init() {
+  document.getElementById('today-date').textContent =
+    new Date().toLocaleDateString('ko-KR', { year:'numeric', month:'long', day:'numeric', weekday:'short' });
+  document.getElementById('attend-date').value = today();
+  ensureSeedData();
+  fillClassSelects();
+  initPaymentMonthSelect();
+  // 강사 계정이 비활성화됐으면 세션을 비운다
+  const sess = getSession();
+  if (sess && sess.role === 'teacher') {
+    const t = getById('teachers', sess.teacherId);
+    if (!t || t.active === false) sessionStorage.removeItem(PREFIX + 'role');
+  }
+  // PIN이 있으면 탭을 새로 열 때마다 사용자 선택
+  if (!getSession() && getDirectorPinHash()) {
+    setSession({ role: 'teacher', teacherId: '' });   // 선택 전에는 아무 반도 보이지 않음
+    openRoleModal();
+  }
+  applyRoleUI();
+  if (isDirector()) {
+    checkBackupAlert();
+    checkThursdayBackupReminder();
+  }
+  renderDashboard();
+}
+
+init();
+</script>
+</body>
+</html>
